@@ -9,4 +9,3 @@ def analyze_dc(voltage_v, resistance_ohm):
 
 if __name__ == "__main__":
     print(analyze_dc(12, 6))
-   
