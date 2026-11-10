@@ -113,5 +113,31 @@ class TestRegion(unittest.TestCase):
         self.assertLess(point.vce_v, 0.2)
 
 
+from bjt import compare
+
+
+class TestCompare(unittest.TestCase):
+    def test_worked_example_values_and_flag(self):
+        inputs = validate(EXAMPLE)
+        result = compare(inputs, solve_exact(inputs))
+        self.assertAlmostEqual(result.ic_approx_a, 1.405263e-3, places=6)
+        self.assertAlmostEqual(result.vce_approx_a, 3.990000, places=6)
+        self.assertAlmostEqual(result.divergence_pct, 6.1637, places=3)
+        self.assertFalse(result.reliable)
+
+    def test_stiff_divider_agrees(self):
+        inputs = validate({**EXAMPLE, "r1": "4700", "r2": "1000", "beta": "300"})
+        result = compare(inputs, solve_exact(inputs))
+        self.assertTrue(result.reliable)
+        self.assertLess(result.divergence_pct, 5.0)
+
+    def test_cutoff_gives_zero_approximation(self):
+        inputs = validate({**EXAMPLE, "r2": "1000"})
+        result = compare(inputs, solve_exact(inputs))
+        self.assertEqual(result.ic_approx_a, 0.0)
+        self.assertEqual(result.divergence_pct, 0.0)
+        self.assertTrue(result.reliable)
+
+
 if __name__ == "__main__":
     unittest.main()

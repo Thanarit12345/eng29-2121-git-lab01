@@ -53,6 +53,14 @@ class OperatingPoint:
     region: str
 
 
+@dataclass(frozen=True)
+class Comparison:
+    ic_approx_a: float
+    vce_approx_a: float
+    divergence_pct: float
+    reliable: bool
+
+
 def validate(raw: Mapping[str, str]) -> BiasInputs:
     """Parse and validate raw form strings, collecting every problem."""
     errors = []
@@ -139,4 +147,29 @@ def solve_exact(inputs: BiasInputs) -> OperatingPoint:
         vce_v=vce_v,
         pq_w=pq_w,
         region="saturation" if vce_v < 0.2 else "active",
+    )
+
+
+def compare(inputs: BiasInputs, exact: OperatingPoint) -> Comparison:
+    """Cross-check the exact solution with the textbook approximation."""
+    vb_approx_v = inputs.vcc_v * inputs.r2_ohm / (inputs.r1_ohm + inputs.r2_ohm)
+    ve_approx_v = vb_approx_v - inputs.vbe_v
+
+    if ve_approx_v <= 0:
+        ic_approx_a = 0.0
+        vce_approx_v = inputs.vcc_v
+    else:
+        ic_approx_a = ve_approx_v / inputs.re_ohm
+        vce_approx_v = inputs.vcc_v - ic_approx_a * (inputs.rc_ohm + inputs.re_ohm)
+
+    if exact.ic_a == 0:
+        divergence_pct = 0.0
+    else:
+        divergence_pct = abs(exact.ic_a - ic_approx_a) / abs(exact.ic_a) * 100
+
+    return Comparison(
+        ic_approx_a=ic_approx_a,
+        vce_approx_a=vce_approx_v,
+        divergence_pct=divergence_pct,
+        reliable=divergence_pct <= 5.0,
     )
