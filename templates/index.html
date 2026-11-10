@@ -8,8 +8,10 @@
 </head>
 <body>
 <main>
-  <h1>BJT Common-Emitter DC Bias</h1>
-  <p class="lede">Voltage-divider bias. Enter the seven parameters to solve the DC operating point.</p>
+  <header class="page-header">
+    <h1>BJT Common-Emitter DC Bias</h1>
+    <p class="lede">Voltage-divider bias. Enter the seven parameters to solve the DC operating point.</p>
+  </header>
 
   {% if errors %}
   <ul class="errors">
@@ -17,52 +19,65 @@
   </ul>
   {% endif %}
 
-  <form method="post" action="/">
-    <fieldset>
-      <legend>Parameters</legend>
-      <div class="grid">
-        {% for key, label, unit in fields %}
-        <label for="{{ key }}">
-          <span class="label">{{ label }}{% if unit %} <span class="unit">({{ unit }})</span>{% endif %}</span>
-          <input id="{{ key }}" name="{{ key }}" value="{{ values[key] }}" inputmode="decimal" autocomplete="off">
-        </label>
-        {% endfor %}
+  <div class="workspace">
+    <section class="panel panel-inputs" aria-labelledby="inputs-title">
+      <h2 id="inputs-title">Parameters</h2>
+      <form method="post" action="/">
+        <div class="grid">
+          {% for key, label, unit in fields %}
+          <label for="{{ key }}">
+            <span class="label">{{ label }}{% if unit %} <span class="unit">({{ unit }})</span>{% endif %}</span>
+            <input id="{{ key }}" name="{{ key }}" value="{{ values[key] }}" inputmode="decimal" autocomplete="off">
+          </label>
+          {% endfor %}
+        </div>
+        <button type="submit">Solve Q-point</button>
+      </form>
+    </section>
+
+    <section class="panel panel-diagram" aria-labelledby="diagram-title">
+      <h2 id="diagram-title">Circuit</h2>
+      <figure class="circuit">
+        <img src="{{ url_for('static', filename='bjt-circuit.svg') }}" alt="NPN BJT common-emitter amplifier with voltage-divider bias: R1 and R2 set the base voltage, RC is the collector load, and RE is the emitter resistor.">
+        <figcaption>Voltage-divider biased NPN common-emitter stage.</figcaption>
+      </figure>
+    </section>
+
+    <section class="panel panel-results" aria-labelledby="results-title">
+      {% if point %}
+      <h2 id="results-title">Q-point <span class="badge region-{{ point.region }}">{{ point.region|capitalize }}</span></h2>
+      <table>
+        <thead><tr><th>Quantity</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>IB</td><td>{{ point.ib_a|current }}</td></tr>
+          <tr><td>IC</td><td>{{ point.ic_a|milliamps }}</td></tr>
+          <tr><td>IE</td><td>{{ point.ie_a|milliamps }}</td></tr>
+          <tr><td>VB</td><td>{{ point.vb_v|voltage }}</td></tr>
+          <tr><td>VC</td><td>{{ point.vc_v|voltage }}</td></tr>
+          <tr><td>VE</td><td>{{ point.ve_v|voltage }}</td></tr>
+          <tr><td>VCE</td><td>{{ point.vce_v|voltage }}</td></tr>
+          <tr><td>PQ</td><td>{{ point.pq_w|power }}</td></tr>
+        </tbody>
+      </table>
+
+      <div class="crosscheck">
+        <h3>Independent cross-check</h3>
+        <table>
+          <thead><tr><th>Quantity</th><th>Exact (Thevenin)</th><th>Approximate</th></tr></thead>
+          <tbody>
+            <tr><td>IC</td><td>{{ point.ic_a|milliamps }}</td><td>{{ comparison.ic_approx_a|milliamps }}</td></tr>
+            <tr><td>VCE</td><td>{{ point.vce_v|voltage }}</td><td>{{ comparison.vce_approx_a|voltage }}</td></tr>
+            <tr><td>Divergence</td><td colspan="2">{{ comparison.divergence_pct|percent }}</td></tr>
+          </tbody>
+        </table>
+        {% for warning in warnings %}<p class="warning">{{ warning }}</p>{% endfor %}
       </div>
-    </fieldset>
-    <button type="submit">Solve Q-point</button>
-  </form>
-
-  {% if point %}
-  <section class="results">
-    <h2>Q-point <span class="badge region-{{ point.region }}">{{ point.region|capitalize }}</span></h2>
-    <table>
-      <thead><tr><th>Quantity</th><th>Value</th></tr></thead>
-      <tbody>
-        <tr><td>IB</td><td>{{ point.ib_a|current }}</td></tr>
-        <tr><td>IC</td><td>{{ point.ic_a|milliamps }}</td></tr>
-        <tr><td>IE</td><td>{{ point.ie_a|milliamps }}</td></tr>
-        <tr><td>VB</td><td>{{ point.vb_v|voltage }}</td></tr>
-        <tr><td>VC</td><td>{{ point.vc_v|voltage }}</td></tr>
-        <tr><td>VE</td><td>{{ point.ve_v|voltage }}</td></tr>
-        <tr><td>VCE</td><td>{{ point.vce_v|voltage }}</td></tr>
-        <tr><td>PQ</td><td>{{ point.pq_w|power }}</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section class="crosscheck">
-    <h2>Independent cross-check</h2>
-    <table>
-      <thead><tr><th>Quantity</th><th>Exact (Thevenin)</th><th>Approximate</th></tr></thead>
-      <tbody>
-        <tr><td>IC</td><td>{{ point.ic_a|milliamps }}</td><td>{{ comparison.ic_approx_a|milliamps }}</td></tr>
-        <tr><td>VCE</td><td>{{ point.vce_v|voltage }}</td><td>{{ comparison.vce_approx_a|voltage }}</td></tr>
-        <tr><td>Divergence</td><td colspan="2">{{ comparison.divergence_pct|percent }}</td></tr>
-      </tbody>
-    </table>
-    {% for warning in warnings %}<p class="warning">{{ warning }}</p>{% endfor %}
-  </section>
-  {% endif %}
+      {% else %}
+      <h2 id="results-title">DC Bias results</h2>
+      <p class="placeholder">Enter the parameters and choose <strong>Solve Q-point</strong> to see the operating point, region, and cross-check.</p>
+      {% endif %}
+    </section>
+  </div>
 </main>
 </body>
 </html>

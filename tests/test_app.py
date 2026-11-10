@@ -66,3 +66,37 @@ class TestRoutes(unittest.TestCase):
         ).get_data(as_text=True)
         self.assertIn("Inputs are too large to produce a finite result", body)
         self.assertNotIn("nan", body.lower())
+
+
+class TestLayout(unittest.TestCase):
+    def setUp(self):
+        app = create_app()
+        app.config.update(TESTING=True)
+        self.client = app.test_client()
+
+    def test_get_renders_three_column_workspace(self):
+        body = self.client.get("/").get_data(as_text=True)
+        self.assertIn('class="workspace"', body)
+        self.assertIn('class="panel panel-inputs"', body)
+        self.assertIn('class="panel panel-diagram"', body)
+        self.assertIn('class="panel panel-results"', body)
+
+    def test_circuit_diagram_loads_from_static(self):
+        body = self.client.get("/").get_data(as_text=True)
+        self.assertIn('src="/static/bjt-circuit.svg"', body)
+        self.assertIn('alt="NPN BJT common-emitter amplifier', body)
+
+    def test_circuit_diagram_is_served_from_static(self):
+        response = self.client.get("/static/bjt-circuit.svg")
+        try:
+            self.assertEqual(response.status_code, 200)
+            self.assertIn("image/svg+xml", response.content_type)
+        finally:
+            response.close()
+
+    def test_results_panel_holds_q_point_and_cross_check(self):
+        body = self.client.post("/", data=EXAMPLE).get_data(as_text=True)
+        results = body.split('class="panel panel-results"', 1)[1]
+        self.assertIn("Q-point", results)
+        self.assertIn("Independent cross-check", results)
+        self.assertIn("Active", results)

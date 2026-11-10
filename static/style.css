@@ -19,8 +19,12 @@ body {
 }
 
 main {
-  max-width: 46rem;
+  max-width: 82rem;
   margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
 }
 
 h1 {
@@ -41,23 +45,27 @@ h2 {
   color: var(--muted);
 }
 
-fieldset {
-  margin: 0;
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.panel {
+  margin-top: 0;
   padding: 1rem 1.25rem 1.25rem;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fff;
 }
 
-legend {
-  padding: 0 0.35rem;
-  font-weight: 600;
-}
+.panel h2 { margin-top: 0; }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  gap: 0.9rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
 }
 
 label {
@@ -98,12 +106,51 @@ button {
 
 button:hover { background: #275d85; }
 
-section {
-  margin-top: 1.75rem;
-  padding: 1rem 1.25rem 1.25rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
+.circuit {
+  margin: 0;
+}
+
+.circuit img {
+  display: block;
+  width: 100%;
+  max-width: 22rem;
+  height: auto;
+  margin: 0 auto;
+}
+
+.circuit figcaption {
+  margin-top: 0.75rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.crosscheck {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.crosscheck h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.placeholder {
+  margin: 0;
+  color: var(--muted);
+}
+
+.panel-results table {
+  font-size: 0.9rem;
+}
+
+.panel-results th,
+.panel-results td {
+  padding: 0.35rem 0.4rem;
 }
 
 table {
@@ -155,4 +202,30 @@ tr:last-child td { border-bottom: 0; }
   border-left: 3px solid var(--saturation);
   background: #fdf6ec;
   color: #7c4a06;
+}
+
+@media (max-width: 1100px) {
+  .workspace {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .panel-results {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .panel-results {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 440px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

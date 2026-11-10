@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 480" role="img" aria-labelledby="circuit-title circuit-desc">
+  <title id="circuit-title">NPN BJT common-emitter amplifier with voltage-divider bias</title>
+  <desc id="circuit-desc">VCC feeds R1 and RC. R1 and R2 form a voltage divider at the base. RC connects the collector to VCC, and RE connects the emitter to ground.</desc>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#1c2430"/>
+    </marker>
+  </defs>
+
+  <g fill="none" stroke="#1c2430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- VCC rail and supply terminal -->
+    <path d="M120 50 H280"/>
+    <path d="M200 50 V34"/>
+    <circle cx="200" cy="50" r="3.5" fill="#1c2430"/>
+
+    <!-- R1: VCC to base node -->
+    <path d="M120 50 V95"/>
+    <path d="M120 95 L112 100 L128 110 L112 120 L128 130 L112 140 L128 150 L120 155"/>
+    <path d="M120 155 V280"/>
+
+    <!-- R2: base node to ground -->
+    <path d="M120 280 V320"/>
+    <path d="M120 320 L112 325 L128 335 L112 345 L128 355 L112 365 L128 375 L120 380"/>
+    <path d="M120 380 V440"/>
+
+    <!-- Base connection -->
+    <path d="M120 280 H230"/>
+    <path d="M230 250 V310"/>
+
+    <!-- RC: VCC to collector -->
+    <path d="M280 50 V90"/>
+    <path d="M280 90 L272 95 L288 105 L272 115 L288 125 L272 135 L288 145 L280 150"/>
+    <path d="M280 150 V220"/>
+    <path d="M230 265 L280 220"/>
+
+    <!-- Emitter with arrow -->
+    <path d="M230 295 L280 340" marker-end="url(#arrow)"/>
+    <path d="M280 340 V370"/>
+
+    <!-- RE: emitter to ground -->
+    <path d="M280 370 L272 375 L288 385 L272 395 L288 405 L272 415 L288 425 L280 430"/>
+    <path d="M280 430 V440"/>
+
+    <!-- Ground symbols -->
+    <path d="M102 440 H138 M108 446 H132 M114 452 H126"/>
+    <path d="M262 440 H298 M268 446 H292 M274 452 H286"/>
+
+    <!-- Junction dots -->
+    <circle cx="120" cy="280" r="3.5" fill="#1c2430"/>
+    <circle cx="280" cy="220" r="3.5" fill="#1c2430"/>
+    <circle cx="280" cy="340" r="3.5" fill="#1c2430"/>
+  </g>
+
+  <g fill="#1c2430" font-family="Segoe UI, system-ui, sans-serif" font-size="15" font-weight="600">
+    <text x="200" y="26" text-anchor="middle">VCC</text>
+    <text x="98" y="128" text-anchor="end">R1</text>
+    <text x="98" y="355" text-anchor="end">R2</text>
+    <text x="302" y="125">RC</text>
+    <text x="302" y="408">RE</text>
+    <text x="300" y="270">Q1</text>
+    <text x="300" y="290" font-size="12" font-weight="500" fill="#5b6775">NPN</text>
+  </g>
+</svg>
