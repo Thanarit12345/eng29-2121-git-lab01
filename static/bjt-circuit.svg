@@ -1,64 +1,87 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 480" role="img" aria-labelledby="circuit-title circuit-desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 520" role="img" aria-labelledby="circuit-title circuit-desc">
   <title id="circuit-title">NPN BJT common-emitter amplifier with voltage-divider bias</title>
   <desc id="circuit-desc">VCC feeds R1 and RC. R1 and R2 form a voltage divider at the base. RC connects the collector to VCC, and RE connects the emitter to ground.</desc>
 
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
-      <path d="M0 0 L10 5 L0 10 Z" fill="#1c2430"/>
+      <path d="M0 0 L10 5 L0 10 Z" fill="#24425c"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0 0 L9 4.5 L0 9 Z" fill="#d97706"/>
+    </marker>
+    <marker id="arrow-magenta" markerWidth="8" markerHeight="8" refX="6.5" refY="4" orient="auto">
+      <path d="M0 0 L8 4 L0 8 Z" fill="#c0268a"/>
     </marker>
   </defs>
 
-  <g fill="none" stroke="#1c2430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <g fill="none" stroke="#24425c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
     <!-- VCC rail and supply terminal -->
-    <path d="M120 50 H280"/>
-    <path d="M200 50 V34"/>
-    <circle cx="200" cy="50" r="3.5" fill="#1c2430"/>
+    <path d="M150 60 H330"/>
+    <path d="M240 60 V44"/>
+    <circle cx="240" cy="60" r="3.6" fill="#0f8a4c" stroke="none"/>
 
     <!-- R1: VCC to base node -->
-    <path d="M120 50 V95"/>
-    <path d="M120 95 L112 100 L128 110 L112 120 L128 130 L112 140 L128 150 L120 155"/>
-    <path d="M120 155 V280"/>
+    <path d="M150 60 V100"/>
+    <path d="M150 100 L142 105 L158 115 L142 125 L158 135 L142 145 L158 155 L150 160"/>
+    <path d="M150 160 V290"/>
 
     <!-- R2: base node to ground -->
-    <path d="M120 280 V320"/>
-    <path d="M120 320 L112 325 L128 335 L112 345 L128 355 L112 365 L128 375 L120 380"/>
-    <path d="M120 380 V440"/>
+    <path d="M150 290 V335"/>
+    <path d="M150 335 L142 340 L158 350 L142 360 L158 370 L142 380 L158 390 L150 395"/>
+    <path d="M150 395 V460"/>
 
     <!-- Base connection -->
-    <path d="M120 280 H230"/>
-    <path d="M230 250 V310"/>
+    <path d="M150 290 H270"/>
+    <path d="M270 260 V320"/>
 
     <!-- RC: VCC to collector -->
-    <path d="M280 50 V90"/>
-    <path d="M280 90 L272 95 L288 105 L272 115 L288 125 L272 135 L288 145 L280 150"/>
-    <path d="M280 150 V220"/>
-    <path d="M230 265 L280 220"/>
+    <path d="M330 60 V100"/>
+    <path d="M330 100 L322 105 L338 115 L322 125 L338 135 L322 145 L338 155 L330 160"/>
+    <path d="M330 160 V230"/>
+    <path d="M270 275 L330 230"/>
 
     <!-- Emitter with arrow -->
-    <path d="M230 295 L280 340" marker-end="url(#arrow)"/>
-    <path d="M280 340 V370"/>
+    <path d="M270 305 L330 350" marker-end="url(#arrow)"/>
+    <path d="M330 350 V385"/>
 
     <!-- RE: emitter to ground -->
-    <path d="M280 370 L272 375 L288 385 L272 395 L288 405 L272 415 L288 425 L280 430"/>
-    <path d="M280 430 V440"/>
+    <path d="M330 385 L322 390 L338 400 L322 410 L338 420 L322 430 L338 440 L330 445"/>
+    <path d="M330 445 V460"/>
 
     <!-- Ground symbols -->
-    <path d="M102 440 H138 M108 446 H132 M114 452 H126"/>
-    <path d="M262 440 H298 M268 446 H292 M274 452 H286"/>
+    <path d="M132 460 H168 M138 466 H162 M144 472 H156"/>
+    <path d="M312 460 H348 M318 466 H342 M324 472 H336"/>
 
     <!-- Junction dots -->
-    <circle cx="120" cy="280" r="3.5" fill="#1c2430"/>
-    <circle cx="280" cy="220" r="3.5" fill="#1c2430"/>
-    <circle cx="280" cy="340" r="3.5" fill="#1c2430"/>
+    <circle cx="150" cy="290" r="3.6" fill="#1668a8" stroke="none"/>
+    <circle cx="330" cy="230" r="3.6" fill="#1668a8" stroke="none"/>
+    <circle cx="330" cy="350" r="3.6" fill="#1668a8" stroke="none"/>
   </g>
 
-  <g fill="#1c2430" font-family="Segoe UI, system-ui, sans-serif" font-size="15" font-weight="600">
-    <text x="200" y="26" text-anchor="middle">VCC</text>
-    <text x="98" y="128" text-anchor="end">R1</text>
-    <text x="98" y="355" text-anchor="end">R2</text>
-    <text x="302" y="125">RC</text>
-    <text x="302" y="408">RE</text>
-    <text x="300" y="270">Q1</text>
-    <text x="300" y="290" font-size="12" font-weight="500" fill="#5b6775">NPN</text>
+  <!-- DC current annotations -->
+  <g fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round">
+    <path d="M305 105 V165" marker-end="url(#arrow-orange)"/>
+    <path d="M305 390 V450" marker-end="url(#arrow-orange)"/>
+  </g>
+
+  <!-- VBE annotation leader -->
+  <g fill="none" stroke="#c0268a" stroke-width="1.6" stroke-dasharray="4 3" stroke-linecap="round">
+    <path d="M242 336 L268 310" marker-end="url(#arrow-magenta)"/>
+  </g>
+
+  <g font-family="Inter, Segoe UI, system-ui, sans-serif" font-size="14" font-weight="600">
+    <text x="240" y="34" text-anchor="middle" fill="#0f8a4c" font-size="16" font-weight="700">VCC</text>
+    <text x="128" y="140" text-anchor="end" fill="#24425c">R1</text>
+    <text x="128" y="375" text-anchor="end" fill="#24425c">R2</text>
+    <text x="352" y="140" fill="#24425c">RC</text>
+    <text x="352" y="420" fill="#24425c">RE</text>
+    <text x="352" y="285" fill="#24425c">Q1</text>
+    <text x="352" y="303" fill="#5b6f84" font-size="11.5" font-weight="500">NPN</text>
+
+    <text x="296" y="138" text-anchor="end" fill="#d97706" font-size="12.5">IC</text>
+    <text x="296" y="423" text-anchor="end" fill="#d97706" font-size="12.5">IE</text>
+    <text x="168" y="278" fill="#c0268a" font-size="12.5">VB</text>
+    <text x="232" y="342" text-anchor="end" fill="#c0268a" font-size="12.5">VBE</text>
+    <text x="348" y="250" fill="#6d4aff" font-size="12.5">VCE</text>
   </g>
 </svg>
