@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BJT Common-Emitter DC Bias</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main>
+  <h1>BJT Common-Emitter DC Bias</h1>
+  <p class="lede">Voltage-divider bias. Enter the seven parameters to solve the DC operating point.</p>
+
+  {% if errors %}
+  <ul class="errors">
+    {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+
+  <form method="post" action="/">
+    <fieldset>
+      <legend>Parameters</legend>
+      <div class="grid">
+        {% for key, label, unit in fields %}
+        <label for="{{ key }}">
+          <span class="label">{{ label }}{% if unit %} <span class="unit">({{ unit }})</span>{% endif %}</span>
+          <input id="{{ key }}" name="{{ key }}" value="{{ values[key] }}" inputmode="decimal" autocomplete="off">
+        </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    <button type="submit">Solve Q-point</button>
+  </form>
+
+  {% if point %}
+  <section class="results">
+    <h2>Q-point <span class="badge region-{{ point.region }}">{{ point.region|capitalize }}</span></h2>
+    <table>
+      <thead><tr><th>Quantity</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>IB</td><td>{{ point.ib_a|current }}</td></tr>
+        <tr><td>IC</td><td>{{ point.ic_a|milliamps }}</td></tr>
+        <tr><td>IE</td><td>{{ point.ie_a|milliamps }}</td></tr>
+        <tr><td>VB</td><td>{{ point.vb_v|voltage }}</td></tr>
+        <tr><td>VC</td><td>{{ point.vc_v|voltage }}</td></tr>
+        <tr><td>VE</td><td>{{ point.ve_v|voltage }}</td></tr>
+        <tr><td>VCE</td><td>{{ point.vce_v|voltage }}</td></tr>
+        <tr><td>PQ</td><td>{{ point.pq_w|power }}</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="crosscheck">
+    <h2>Independent cross-check</h2>
+    <table>
+      <thead><tr><th>Quantity</th><th>Exact (Thevenin)</th><th>Approximate</th></tr></thead>
+      <tbody>
+        <tr><td>IC</td><td>{{ point.ic_a|milliamps }}</td><td>{{ comparison.ic_approx_a|milliamps }}</td></tr>
+        <tr><td>VCE</td><td>{{ point.vce_v|voltage }}</td><td>{{ comparison.vce_approx_a|voltage }}</td></tr>
+        <tr><td>Divergence</td><td colspan="2">{{ comparison.divergence_pct|percent }}</td></tr>
+      </tbody>
+    </table>
+    {% for warning in warnings %}<p class="warning">{{ warning }}</p>{% endfor %}
+  </section>
+  {% endif %}
+</main>
+</body>
+</html>
