@@ -50,6 +50,7 @@ class OperatingPoint:
     ve_v: float
     vce_v: float
     pq_w: float
+    region: str
 
 
 def validate(raw: Mapping[str, str]) -> BiasInputs:
@@ -101,6 +102,21 @@ def solve_exact(inputs: BiasInputs) -> OperatingPoint:
     vbb_v = inputs.vcc_v * inputs.r2_ohm / (inputs.r1_ohm + inputs.r2_ohm)
     rth_ohm = inputs.r1_ohm * inputs.r2_ohm / (inputs.r1_ohm + inputs.r2_ohm)
 
+    if vbb_v <= inputs.vbe_v:
+        return OperatingPoint(
+            vbb_v=vbb_v,
+            rth_ohm=rth_ohm,
+            ib_a=0.0,
+            ic_a=0.0,
+            ie_a=0.0,
+            vb_v=vbb_v,
+            vc_v=inputs.vcc_v,
+            ve_v=0.0,
+            vce_v=inputs.vcc_v,
+            pq_w=0.0,
+            region="cutoff",
+        )
+
     ib_a = (vbb_v - inputs.vbe_v) / (rth_ohm + (1 + inputs.beta) * inputs.re_ohm)
     ic_a = inputs.beta * ib_a
     ie_a = (1 + inputs.beta) * ib_a
@@ -122,4 +138,5 @@ def solve_exact(inputs: BiasInputs) -> OperatingPoint:
         ve_v=ve_v,
         vce_v=vce_v,
         pq_w=pq_w,
+        region="saturation" if vce_v < 0.2 else "active",
     )

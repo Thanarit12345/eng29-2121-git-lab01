@@ -81,5 +81,37 @@ class TestSolveExact(unittest.TestCase):
         self.assertGreater(high.ib_a, low.ib_a)
 
 
+class TestRegion(unittest.TestCase):
+    def test_worked_example_is_active(self):
+        self.assertEqual(solve_exact(validate(EXAMPLE)).region, "active")
+
+    def test_divider_below_vbe_is_cutoff(self):
+        point = solve_exact(validate({**EXAMPLE, "r2": "1000"}))  # VBB = 0.25 V
+        self.assertEqual(point.region, "cutoff")
+        self.assertEqual(point.ib_a, 0.0)
+        self.assertEqual(point.ic_a, 0.0)
+        self.assertEqual(point.ie_a, 0.0)
+        self.assertAlmostEqual(point.ve_v, 0.0, places=9)
+        self.assertAlmostEqual(point.vb_v, 0.25, places=6)
+        self.assertAlmostEqual(point.vc_v, 12.0, places=6)
+        self.assertAlmostEqual(point.vce_v, 12.0, places=6)
+        self.assertAlmostEqual(point.pq_w, 0.0, places=9)
+
+    def test_large_collector_resistor_is_saturation(self):
+        point = solve_exact(validate({**EXAMPLE, "rc": "22000"}))
+        self.assertEqual(point.region, "saturation")
+        self.assertLess(point.vce_v, 0.2)
+
+    def test_huge_beta_approaches_approximation(self):
+        point = solve_exact(validate({**EXAMPLE, "beta": "100000"}))
+        self.assertEqual(point.region, "active")
+        self.assertAlmostEqual(point.vce_v, 3.99, places=2)
+
+    def test_tiny_emitter_resistor_is_saturation(self):
+        point = solve_exact(validate({**EXAMPLE, "re": "1"}))
+        self.assertEqual(point.region, "saturation")
+        self.assertLess(point.vce_v, 0.2)
+
+
 if __name__ == "__main__":
     unittest.main()
