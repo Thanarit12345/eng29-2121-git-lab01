@@ -6,6 +6,8 @@ Pure engineering logic: no Flask, no formatting, no HTML.
 from dataclasses import dataclass
 from typing import Mapping
 
+import math
+
 FIELDS = {
     "vcc": "VCC",
     "r1": "R1",
@@ -17,6 +19,8 @@ FIELDS = {
 }
 
 RESISTOR_FIELDS = (("r1", "R1"), ("r2", "R2"), ("rc", "RC"), ("re", "RE"))
+
+NON_FINITE_MESSAGE = "Inputs are too large to produce a finite result"
 
 
 class ValidationError(ValueError):
@@ -69,10 +73,16 @@ def validate(raw: Mapping[str, str]) -> BiasInputs:
     for key, label in FIELDS.items():
         text = str(raw.get(key, "")).strip()
         try:
-            values[key] = float(text)
+            value = float(text)
         except ValueError:
             errors.append(f"Enter a number for {label}")
             values[key] = None
+            continue
+        if not math.isfinite(value):
+            errors.append(f"Enter a finite number for {label}")
+            values[key] = None
+            continue
+        values[key] = value
 
     if values["vcc"] is not None and values["vcc"] <= 0:
         errors.append("VCC must be greater than 0 V")
@@ -105,13 +115,23 @@ def validate(raw: Mapping[str, str]) -> BiasInputs:
     )
 
 
+def _checked(point: OperatingPoint) -> OperatingPoint:
+    values = (
+        point.vbb_v, point.rth_ohm, point.ib_a, point.ic_a, point.ie_a,
+        point.vb_v, point.vc_v, point.ve_v, point.vce_v, point.pq_w,
+    )
+    if not all(math.isfinite(value) for value in values):
+        raise ValidationError([NON_FINITE_MESSAGE])
+    return point
+
+
 def solve_exact(inputs: BiasInputs) -> OperatingPoint:
     """Solve the base loop through the divider's Thevenin equivalent."""
     vbb_v = inputs.vcc_v * inputs.r2_ohm / (inputs.r1_ohm + inputs.r2_ohm)
     rth_ohm = inputs.r1_ohm * inputs.r2_ohm / (inputs.r1_ohm + inputs.r2_ohm)
 
     if vbb_v <= inputs.vbe_v:
-        return OperatingPoint(
+        return _checked(OperatingPoint(
             vbb_v=vbb_v,
             rth_ohm=rth_ohm,
             ib_a=0.0,
@@ -123,7 +143,7 @@ def solve_exact(inputs: BiasInputs) -> OperatingPoint:
             vce_v=inputs.vcc_v,
             pq_w=0.0,
             region="cutoff",
-        )
+        ))
 
     ib_a = (vbb_v - inputs.vbe_v) / (rth_ohm + (1 + inputs.beta) * inputs.re_ohm)
     ic_a = inputs.beta * ib_a
@@ -135,7 +155,7 @@ def solve_exact(inputs: BiasInputs) -> OperatingPoint:
     vce_v = vc_v - ve_v
     pq_w = vce_v * ic_a
 
-    return OperatingPoint(
+    return _checked(OperatingPoint(
         vbb_v=vbb_v,
         rth_ohm=rth_ohm,
         ib_a=ib_a,
@@ -147,7 +167,7 @@ def solve_exact(inputs: BiasInputs) -> OperatingPoint:
         vce_v=vce_v,
         pq_w=pq_w,
         region="saturation" if vce_v < 0.2 else "active",
-    )
+    ))
 
 
 def compare(inputs: BiasInputs, exact: OperatingPoint) -> Comparison:
@@ -167,9 +187,15 @@ def compare(inputs: BiasInputs, exact: OperatingPoint) -> Comparison:
     else:
         divergence_pct = abs(exact.ic_a - ic_approx_a) / abs(exact.ic_a) * 100
 
-    return Comparison(
+    result = Comparison(
         ic_approx_a=ic_approx_a,
         vce_approx_a=vce_approx_v,
         divergence_pct=divergence_pct,
         reliable=divergence_pct <= 5.0,
     )
+    if not all(
+        math.isfinite(value)
+        for value in (result.ic_approx_a, result.vce_approx_a, result.divergence_pct)
+    ):
+        raise ValidationError([NON_FINITE_MESSAGE])
+    return result

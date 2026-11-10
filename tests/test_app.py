@@ -54,3 +54,15 @@ class TestRoutes(unittest.TestCase):
         self.assertNotIn("nan", body.lower())
         self.assertNotIn("inf", body.lower())
         self.assertIn(" V", body)
+
+    def test_non_finite_post_is_rejected(self):
+        body = self.client.post("/", data={**EXAMPLE, "vcc": "1e309"}).get_data(as_text=True)
+        self.assertIn("Enter a finite number for VCC", body)
+        self.assertNotIn("nan", body.lower())
+
+    def test_overflowing_divider_post_is_rejected(self):
+        body = self.client.post(
+            "/", data={**EXAMPLE, "r1": "1e308", "r2": "1e308"}
+        ).get_data(as_text=True)
+        self.assertIn("Inputs are too large to produce a finite result", body)
+        self.assertNotIn("nan", body.lower())

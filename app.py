@@ -91,6 +91,8 @@ def create_app():
         values = {key: request.form.get(key, "") for key, _, _ in FIELDS}
         try:
             inputs = validate(request.form)
+            point = solve_exact(inputs)
+            comparison = compare(inputs, point)
         except ValidationError as exc:
             return render_template(
                 "index.html",
@@ -102,8 +104,6 @@ def create_app():
                 warnings=[],
             )
 
-        point = solve_exact(inputs)
-        comparison = compare(inputs, point)
         return render_template(
             "index.html",
             values=values,

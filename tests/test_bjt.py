@@ -60,6 +60,23 @@ class TestValidate(unittest.TestCase):
         self.assertIn("VCC must be greater than 0 V", ctx.exception.errors)
         self.assertIn("R1 must be greater than 0 \u03a9", ctx.exception.errors)
 
+    def test_non_finite_vcc_is_rejected(self):
+        for vcc in ("inf", "nan", "1e309"):
+            with self.assertRaises(ValidationError) as ctx:
+                validate({**EXAMPLE, "vcc": vcc})
+            self.assertIn("Enter a finite number for VCC", ctx.exception.errors)
+
+    def test_non_finite_beta_is_rejected(self):
+        with self.assertRaises(ValidationError) as ctx:
+            validate({**EXAMPLE, "beta": "nan"})
+        self.assertIn("Enter a finite number for beta", ctx.exception.errors)
+
+    def test_overflowing_divider_is_rejected(self):
+        inputs = validate({**EXAMPLE, "r1": "1e308", "r2": "1e308"})
+        with self.assertRaises(ValidationError) as ctx:
+            solve_exact(inputs)
+        self.assertIn("Inputs are too large to produce a finite result", ctx.exception.errors)
+
 
 class TestSolveExact(unittest.TestCase):
     def test_worked_example(self):
