@@ -39,21 +39,38 @@ too lightly loaded or beta is too low.
 
 ```powershell
 python -m venv .venv
-.venv\Scripts\python -m pip install -r requirements.txt
+```
+
+Activate the environment for your OS:
+
+```powershell
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+
+# Linux / macOS
+source .venv/bin/activate
+```
+
+Then install the dependency:
+
+```powershell
+python -m pip install -r requirements.txt
 ```
 
 ## Run
 
 ```powershell
-.venv\Scripts\python app.py
+python -m flask --app app run --debug
 ```
 
-Open <http://127.0.0.1:5000>.
+Open <http://127.0.0.1:5000/> in your browser.
 
 ## Test
 
+In another terminal, from the same environment:
+
 ```powershell
-.venv\Scripts\python -m unittest discover -s tests -t . -v
+python -m unittest discover -s tests -v
 ```
 
 `tests/test_bjt.py` covers validation, the exact solution, region
