@@ -18,8 +18,8 @@
         <rect x="17.5" y="17.5" width="5" height="5" rx="1" fill="#0f8a8a"/>
       </svg>
       <div class="brand-text">
-        <h1>BJT Common-Emitter Amplifier <span class="title-sep">–</span> Voltage Divider Bias</h1>
-        <p class="lede">DC operating point, operating region, and independent cross-check for the NPN common-emitter stage.</p>
+        <h1>BJT Common-Emitter Amplifier <span class="title-sep">–</span> {{ mode_title }}</h1>
+        <p class="lede">DC operating point and operating region{% if mode == 'divider' %}, plus an independent cross-check{% endif %} for the NPN common-emitter stage.</p>
       </div>
     </div>
     <div class="topbar-meta">
@@ -27,6 +27,12 @@
       <span class="pill pill-teal">DC Bias</span>
     </div>
   </header>
+
+  <nav class="mode-switch" aria-label="Bias mode">
+    {% for key, label in modes %}
+    <a class="mode-tab{% if key == mode %} is-active{% endif %}" href="{{ url_for('index', mode=key) }}">{{ label }}</a>
+    {% endfor %}
+  </nav>
 
   {% if errors %}
   <ul class="errors">
@@ -46,6 +52,7 @@
         Parameters
       </h2>
       <form method="post" action="/">
+        <input type="hidden" name="mode" value="{{ mode }}">
         <div class="grid">
           {% for key, label, unit in fields %}
           <label for="{{ key }}">
@@ -74,6 +81,7 @@
         </svg>
         Circuit
       </h2>
+      {% if mode == 'divider' %}
       <figure class="circuit">
         <img src="{{ url_for('static', filename='bjt-circuit.svg') }}" alt="NPN BJT common-emitter amplifier with voltage-divider bias: R1 and R2 set the base voltage, RC is the collector load, and RE is the emitter resistor.">
         <figcaption>Voltage-divider biased NPN common-emitter stage.</figcaption>
@@ -84,10 +92,33 @@
           <span><i class="dot dot-qpoint"></i>Q-point</span>
         </div>
       </figure>
+      {% elif mode == 'fixed' %}
+      <figure class="circuit">
+        <img src="{{ url_for('static', filename='bjt-fixed-circuit.svg') }}" alt="NPN BJT common-emitter amplifier with fixed bias: RB connects VCC to the base, RC connects VCC to the collector, and the emitter is grounded so VE is zero.">
+        <figcaption>Fixed-biased NPN common-emitter stage: RB sets the base current directly.</figcaption>
+        <div class="legend" aria-hidden="true">
+          <span><i class="dot dot-supply"></i>Supply</span>
+          <span><i class="dot dot-current"></i>Current</span>
+          <span><i class="dot dot-voltage"></i>Voltage</span>
+          <span><i class="dot dot-qpoint"></i>Q-point</span>
+        </div>
+      </figure>
+      {% else %}
+      <figure class="circuit">
+        <img src="{{ url_for('static', filename='bjt-emitter-circuit.svg') }}" alt="NPN BJT common-emitter amplifier with emitter bias: RB connects VCC to the base, RC connects VCC to the collector, and RE connects the emitter to ground.">
+        <figcaption>Emitter-biased NPN common-emitter stage: RE stabilises the operating point.</figcaption>
+        <div class="legend" aria-hidden="true">
+          <span><i class="dot dot-supply"></i>Supply</span>
+          <span><i class="dot dot-current"></i>Current</span>
+          <span><i class="dot dot-voltage"></i>Voltage</span>
+          <span><i class="dot dot-qpoint"></i>Q-point</span>
+        </div>
+      </figure>
+      {% endif %}
     </section>
 
     <section class="panel panel-results" aria-labelledby="results-title">
-      {% if point %}
+      {% if result %}
       <h2 id="results-title">
         <svg class="panel-icon" viewBox="0 0 16 16" aria-hidden="true">
           <path d="M2.5 13.5h11" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
@@ -95,34 +126,36 @@
           <rect x="6.9" y="5" width="2.2" height="7" rx=".4" fill="currentColor" opacity=".75"/>
           <rect x="10.3" y="2.5" width="2.2" height="9.5" rx=".4" fill="currentColor" opacity=".5"/>
         </svg>
-        Q-point <span class="badge region-{{ point.region }}">{{ point.region|capitalize }}</span>
+        Q-point <span class="badge region-{{ result.region }}">{{ result.region|capitalize }}</span>
       </h2>
       <table>
         <thead><tr><th>Quantity</th><th>Value</th></tr></thead>
         <tbody>
-          <tr><td>IB</td><td>{{ point.ib_a|current }}</td></tr>
-          <tr><td>IC</td><td>{{ point.ic_a|milliamps }}</td></tr>
-          <tr><td>IE</td><td>{{ point.ie_a|milliamps }}</td></tr>
-          <tr><td>VB</td><td>{{ point.vb_v|voltage }}</td></tr>
-          <tr><td>VC</td><td>{{ point.vc_v|voltage }}</td></tr>
-          <tr><td>VE</td><td>{{ point.ve_v|voltage }}</td></tr>
-          <tr><td>VCE</td><td>{{ point.vce_v|voltage }}</td></tr>
-          <tr><td>PQ</td><td>{{ point.pq_w|power }}</td></tr>
+          <tr><td>IB</td><td>{{ result.ib_a|current }}</td></tr>
+          <tr><td>IC</td><td>{{ result.ic_a|milliamps }}</td></tr>
+          <tr><td>IE</td><td>{{ result.ie_a|milliamps }}</td></tr>
+          <tr><td>VB</td><td>{{ result.vb_v|voltage }}</td></tr>
+          <tr><td>VC</td><td>{{ result.vc_v|voltage }}</td></tr>
+          <tr><td>VE</td><td>{{ result.ve_v|voltage }}</td></tr>
+          <tr><td>VCE</td><td>{{ result.vce_v|voltage }}</td></tr>
+          <tr><td>PQ</td><td>{{ result.pq_w|power }}</td></tr>
         </tbody>
       </table>
 
+      {% if comparison %}
       <div class="crosscheck">
         <h3>Independent cross-check</h3>
         <table>
           <thead><tr><th>Quantity</th><th>Exact (Thevenin)</th><th>Approximate</th></tr></thead>
           <tbody>
-            <tr><td>IC</td><td>{{ point.ic_a|milliamps }}</td><td>{{ comparison.ic_approx_a|milliamps }}</td></tr>
-            <tr><td>VCE</td><td>{{ point.vce_v|voltage }}</td><td>{{ comparison.vce_approx_a|voltage }}</td></tr>
+            <tr><td>IC</td><td>{{ result.ic_a|milliamps }}</td><td>{{ comparison.ic_approx_a|milliamps }}</td></tr>
+            <tr><td>VCE</td><td>{{ result.vce_v|voltage }}</td><td>{{ comparison.vce_approx_a|voltage }}</td></tr>
             <tr><td>Divergence</td><td colspan="2">{{ comparison.divergence_pct|percent }}</td></tr>
           </tbody>
         </table>
-        {% for warning in warnings %}<p class="warning">{{ warning }}</p>{% endfor %}
       </div>
+      {% endif %}
+      {% for warning in warnings %}<p class="warning">{{ warning }}</p>{% endfor %}
       {% else %}
       <h2 id="results-title">
         <svg class="panel-icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -133,7 +166,7 @@
         </svg>
         DC Bias results
       </h2>
-      <p class="placeholder">Enter the parameters and choose <strong>Solve Q-point</strong> to see the operating point, region, and cross-check.</p>
+      <p class="placeholder">Enter the parameters and choose <strong>Solve Q-point</strong> to see the operating point{% if mode == 'divider' %}, region, and cross-check{% else %} and region{% endif %}.</p>
       {% endif %}
     </section>
   </div>

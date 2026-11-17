@@ -2,27 +2,69 @@
 
 from flask import Flask, render_template, request
 
-from bjt import ValidationError, compare, solve_exact, validate
+from bjt import MODES, ValidationError, analyze
 
-DEFAULTS = {
-    "vcc": "12",
-    "r1": "47000",
-    "r2": "10000",
-    "rc": "4700",
-    "re": "1000",
-    "beta": "150",
-    "vbe": "0.7",
+MODE_TITLES = {
+    "divider": "Voltage Divider Bias",
+    "fixed": "Fixed Bias",
+    "emitter": "Emitter Bias",
 }
 
-FIELDS = (
-    ("vcc", "VCC", "V"),
-    ("r1", "R1", "\u03a9"),
-    ("r2", "R2", "\u03a9"),
-    ("rc", "RC", "\u03a9"),
-    ("re", "RE", "\u03a9"),
-    ("beta", "beta", ""),
-    ("vbe", "VBE", "V"),
-)
+MODE_LINKS = tuple((mode, MODE_TITLES[mode]) for mode in MODES)
+
+DEFAULTS = {
+    "divider": {
+        "vcc": "12",
+        "r1": "47000",
+        "r2": "10000",
+        "rc": "4700",
+        "re": "1000",
+        "beta": "150",
+        "vbe": "0.7",
+    },
+    "fixed": {
+        "vcc": "12",
+        "rb": "470000",
+        "rc": "2200",
+        "beta": "150",
+        "vbe": "0.7",
+    },
+    "emitter": {
+        "vcc": "12",
+        "rb": "470000",
+        "rc": "2200",
+        "re": "1000",
+        "beta": "150",
+        "vbe": "0.7",
+    },
+}
+
+FIELDS = {
+    "divider": (
+        ("vcc", "VCC", "V"),
+        ("r1", "R1", "\u03a9"),
+        ("r2", "R2", "\u03a9"),
+        ("rc", "RC", "\u03a9"),
+        ("re", "RE", "\u03a9"),
+        ("beta", "beta", ""),
+        ("vbe", "VBE", "V"),
+    ),
+    "fixed": (
+        ("vcc", "VCC", "V"),
+        ("rb", "RB", "\u03a9"),
+        ("rc", "RC", "\u03a9"),
+        ("beta", "beta", ""),
+        ("vbe", "VBE", "V"),
+    ),
+    "emitter": (
+        ("vcc", "VCC", "V"),
+        ("rb", "RB", "\u03a9"),
+        ("rc", "RC", "\u03a9"),
+        ("re", "RE", "\u03a9"),
+        ("beta", "beta", ""),
+        ("vbe", "VBE", "V"),
+    ),
+}
 
 
 def format_voltage(value):
@@ -47,24 +89,28 @@ def format_percent(value):
     return f"{value:.1f}%"
 
 
-def build_warnings(point, comparison):
+def build_warnings(result):
     warnings = []
-    if point.region == "cutoff":
+    if result["region"] == "cutoff":
         warnings.append(
             "Transistor is in cutoff: VBB does not exceed VBE, "
             "so no collector current flows."
         )
-    elif point.region == "saturation":
+    elif result["region"] == "saturation":
         warnings.append(
             "Transistor is in saturation: VCE is below 0.2 V, "
             "so the active-region formulas no longer apply."
         )
-    if not comparison.reliable:
+    if result.get("reliable") is False:
         warnings.append(
             "Approximation differs from the exact solution by more than 5%; "
             "the divider is too lightly loaded or beta is too low."
         )
     return warnings
+
+
+def _normalize_mode(mode):
+    return mode if mode in MODES else "divider"
 
 
 def create_app():
@@ -78,40 +124,50 @@ def create_app():
     @app.route("/", methods=["GET", "POST"])
     def index():
         if request.method == "GET":
+            mode = _normalize_mode(request.args.get("mode", "divider"))
             return render_template(
                 "index.html",
-                values=DEFAULTS,
-                fields=FIELDS,
+                mode=mode,
+                mode_title=MODE_TITLES[mode],
+                modes=MODE_LINKS,
+                values=DEFAULTS[mode],
+                fields=FIELDS[mode],
                 errors=[],
-                point=None,
+                result=None,
                 comparison=None,
                 warnings=[],
             )
 
-        values = {key: request.form.get(key, "") for key, _, _ in FIELDS}
+        mode = _normalize_mode(request.form.get("mode", "divider"))
+        fields = FIELDS[mode]
+        values = {key: request.form.get(key, "") for key, _, _ in fields}
         try:
-            inputs = validate(request.form)
-            point = solve_exact(inputs)
-            comparison = compare(inputs, point)
+            result = analyze(mode, request.form)
         except ValidationError as exc:
             return render_template(
                 "index.html",
+                mode=mode,
+                mode_title=MODE_TITLES[mode],
+                modes=MODE_LINKS,
                 values=values,
-                fields=FIELDS,
+                fields=fields,
                 errors=exc.errors,
-                point=None,
+                result=None,
                 comparison=None,
                 warnings=[],
             )
 
         return render_template(
             "index.html",
+            mode=mode,
+            mode_title=MODE_TITLES[mode],
+            modes=MODE_LINKS,
             values=values,
-            fields=FIELDS,
+            fields=fields,
             errors=[],
-            point=point,
-            comparison=comparison,
-            warnings=build_warnings(point, comparison),
+            result=result,
+            comparison=result if mode == "divider" else None,
+            warnings=build_warnings(result),
         )
 
     return app

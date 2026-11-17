@@ -1,15 +1,22 @@
 # BJT Common-Emitter DC Bias
 
 A small Flask app that solves the DC operating point of an NPN
-common-emitter stage with voltage-divider bias, and cross-checks the
-answer with the textbook approximation.
+common-emitter stage with voltage-divider, fixed, or emitter bias, and
+cross-checks the divider answer with the textbook approximation.
 
 Built for the ENG29 2121 lab.
 
 ## What it does
 
-Enter seven parameters — `VCC`, `R1`, `R2`, `RC`, `RE`, `beta`, `VBE` — and
-the app returns the Q-point:
+Choose a bias mode, enter its parameters, and the app returns the Q-point:
+
+| Mode | Parameters |
+|------|------------|
+| Voltage divider | `VCC`, `R1`, `R2`, `RC`, `RE`, `beta`, `VBE` |
+| Fixed bias | `VCC`, `RB`, `RC`, `beta`, `VBE` |
+| Emitter bias | `VCC`, `RB`, `RC`, `RE`, `beta`, `VBE` |
+
+All modes return the same keys and units:
 
 | Quantity | Unit |
 |----------|------|
@@ -29,6 +36,40 @@ cross-check:
 The page shows both `IC` and `VCE` plus the percentage divergence. Above
 5% the app warns that the approximation is unreliable — the divider is
 too lightly loaded or beta is too low.
+
+## Equations
+
+**Fixed bias** (single supply, no `RE`):
+
+```text
+IB  = (VCC - VBE) / RB
+IC  = beta * IB
+IE  = (1 + beta) * IB
+VE  = 0
+VB  = VBE
+VC  = VCC - IC * RC
+VCE = VC
+PQ  = VCE * IC
+```
+
+**Emitter bias** (single supply, `RB` and `RE`):
+
+```text
+IB  = (VCC - VBE) / (RB + (1 + beta) * RE)
+IC  = beta * IB
+IE  = (1 + beta) * IB
+VE  = IE * RE
+VB  = VBE + VE
+VC  = VCC - IC * RC
+VCE = VC - VE
+PQ  = VCE * IC
+```
+
+Voltage-divider mode keeps its exact and approximate equations above.
+Inputs are SI (V, Ω); the app converts only for display (µA/mA, mW).
+`bjt.py` returns a dict with `mode`, `ib_a`, `ic_a`, `ie_a`, `vb_v`,
+`vc_v`, `ve_v`, `vce_v`, `pq_w`, and `region`; divider mode adds
+`vbb_v`, `rth_ohm`, and the cross-check fields.
 
 ## Requirements
 
