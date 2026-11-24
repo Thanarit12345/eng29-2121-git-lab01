@@ -1,0 +1,40 @@
+{
+  "label": "b6",
+  "amplitude_v_peak": 0.02,
+  "frequency_hz": 2000.0,
+  "model_path": "C:\\Users\\B6813604\\eng29-2121-git-lab01\\spice\\models\\2N3904.lib",
+  "ngspice_exe": "C:\\Users\\B6813604\\eng29-2121-git-lab01\\.tools\\Spice64\\bin\\ngspice_con.exe",
+  "dc_spice": {
+    "vb_v": 1.976512,
+    "ve_v": 1.323593,
+    "vc_v": 9.110961,
+    "vce_v": 7.787368,
+    "vout_v": 0.0,
+    "ib_a": 1.0393454545454478e-05,
+    "ic_a": 0.0013131995454545456,
+    "ie_a": 0.001323593,
+    "beta_eff": 126.34870722832635,
+    "region": "active"
+  },
+  "ac": {
+    "selected_frequency_hz": 1995.26231,
+    "gain_db": 4.87947778,
+    "gain_vv": 1.753775056806099,
+    "phase_deg": -179.9377863180513,
+    "peak_gain_db": 4.87948053,
+    "low_cutoff_hz": 1.73780083,
+    "high_cutoff_hz": null
+  },
+  "tran": {
+    "vin_peak_v": 0.019920388697412354,
+    "vout_peak_v": 0.03493576586541768,
+    "vin_pp_mv": 39.840777394824705,
+    "vout_pp_mv": 69.87153173083537,
+    "gain_vv": 1.7537692861362597,
+    "phase_deg": 179.9379690522643,
+    "phase_inverted": true
+  },
+  "ac_rows": 451,
+  "tran_rows": 2508,
+  "log_file": "ngspice-b6.log"
+}
