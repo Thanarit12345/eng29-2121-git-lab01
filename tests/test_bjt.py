@@ -130,7 +130,13 @@ class TestRegion(unittest.TestCase):
         self.assertLess(point.vce_v, 0.2)
 
 
-from bjt import compare
+from bjt import (
+    FixedBiasInputs,
+    EmitterBiasInputs,
+    compare,
+    solve_emitter_bias,
+    solve_fixed_bias,
+)
 
 
 class TestCompare(unittest.TestCase):
@@ -154,6 +160,36 @@ class TestCompare(unittest.TestCase):
         self.assertEqual(result.ic_approx_a, 0.0)
         self.assertEqual(result.divergence_pct, 0.0)
         self.assertTrue(result.reliable)
+
+
+class TestFixedBias(unittest.TestCase):
+    def test_reference_values(self):
+        point = solve_fixed_bias(FixedBiasInputs(12.0, 470000.0, 2200.0, 150.0, 0.7))
+        self.assertAlmostEqual(point.ib_a, 24.042553e-6, places=10)
+        self.assertAlmostEqual(point.ic_a, 3.606383e-3, places=7)
+        self.assertAlmostEqual(point.vce_v, 4.065957, places=6)
+        self.assertEqual(point.region, "active")
+
+    def test_cutoff_when_vcc_below_vbe(self):
+        point = solve_fixed_bias(FixedBiasInputs(0.5, 470000.0, 2200.0, 150.0, 0.7))
+        self.assertEqual(point.region, "cutoff")
+        self.assertEqual(point.ic_a, 0.0)
+        self.assertAlmostEqual(point.vce_v, 0.5, places=6)
+
+
+class TestEmitterBias(unittest.TestCase):
+    def test_reference_values(self):
+        point = solve_emitter_bias(EmitterBiasInputs(12.0, 470000.0, 2200.0, 1000.0, 150.0, 0.7))
+        self.assertAlmostEqual(point.ib_a, 18.196457e-6, places=9)
+        self.assertAlmostEqual(point.ic_a, 2.729469e-3, places=6)
+        self.assertAlmostEqual(point.ve_v, 2.747665, places=6)
+        self.assertAlmostEqual(point.vce_v, 3.247504, places=6)
+        self.assertEqual(point.region, "active")
+
+    def test_saturation(self):
+        point = solve_emitter_bias(EmitterBiasInputs(12.0, 470000.0, 22000.0, 1000.0, 150.0, 0.7))
+        self.assertEqual(point.region, "saturation")
+        self.assertLess(point.vce_v, 0.2)
 
 
 if __name__ == "__main__":

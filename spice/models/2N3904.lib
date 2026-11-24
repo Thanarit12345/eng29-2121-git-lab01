@@ -1,0 +1,5 @@
+* Fallback 2N3904 NPN model for ENG29 2121 CE amplifier simulator.
+* Source basis: commonly used educational 2N3904 SPICE parameterization.
+* Override with SPICE_MODEL environment variable if instructor provides a model.
+.model QREF NPN(IS=1.4E-14 BF=300 VAF=100 IKF=0.025 ISE=3E-13
++ BR=7.5 RC=2.4 CJE=4.5E-12 TF=4E-10 CJC=3.5E-12 TR=2.1E-8 XTB=1.5 KF=9E-16)

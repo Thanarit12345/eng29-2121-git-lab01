@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 520" role="img" aria-labelledby="title desc">
+  <title id="title">NPN BJT emitter-bias amplifier</title>
+  <desc id="desc">RB connects VCC to base, RC connects VCC to collector, and RE connects emitter to ground.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#24425c"/></marker>
+  </defs>
+  <g fill="none" stroke="#24425c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M150 60 H330"/><path d="M240 60 V44"/>
+    <circle cx="240" cy="60" r="3.6" fill="#0f8a4c" stroke="none"/>
+    <path d="M150 60 V120"/><path d="M150 120 L142 125 L158 135 L142 145 L158 155 L142 165 L158 175 L150 180"/><path d="M150 180 V290 H270"/>
+    <path d="M270 260 V320"/>
+    <path d="M330 60 V120"/><path d="M330 120 L322 125 L338 135 L322 145 L338 155 L322 165 L338 175 L330 180"/><path d="M330 180 V230"/>
+    <path d="M270 275 L330 230"/>
+    <path d="M270 305 L330 350" marker-end="url(#arrow)"/><path d="M330 350 V385"/>
+    <path d="M330 385 L322 390 L338 400 L322 410 L338 420 L322 430 L338 440 L330 445"/><path d="M330 445 V460"/>
+    <path d="M312 460 H348 M318 466 H342 M324 472 H336"/>
+    <circle cx="150" cy="290" r="3.6" fill="#1668a8" stroke="none"/>
+    <circle cx="330" cy="230" r="3.6" fill="#1668a8" stroke="none"/>
+    <circle cx="330" cy="350" r="3.6" fill="#1668a8" stroke="none"/>
+  </g>
+  <g font-family="Inter, Segoe UI, system-ui, sans-serif" font-size="14" font-weight="600" fill="#24425c">
+    <text x="240" y="34" text-anchor="middle" fill="#0f8a4c" font-size="16" font-weight="700">VCC</text>
+    <text x="128" y="155" text-anchor="end">RB</text>
+    <text x="352" y="155">RC</text>
+    <text x="352" y="420">RE</text>
+    <text x="352" y="285">Q1</text>
+    <text x="352" y="303" fill="#5b6f84" font-size="11.5" font-weight="500">NPN</text>
+    <text x="168" y="278" fill="#c0268a" font-size="12.5">VB</text>
+    <text x="348" y="250" fill="#6d4aff" font-size="12.5">VC</text>
+    <text x="348" y="365" fill="#c0268a" font-size="12.5">VE</text>
+  </g>
+</svg>

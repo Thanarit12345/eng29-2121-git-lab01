@@ -1,148 +1,66 @@
-# BJT Common-Emitter DC Bias
+# BJT CE Bias & Amplifier Simulator
 
-A small Flask app that solves the DC operating point of an NPN
-common-emitter stage with voltage-divider, fixed, or emitter bias, and
-cross-checks the divider answer with the textbook approximation.
+ENG29 2121 Lab 3/CE extension: a Flask app for analytical NPN DC bias analysis and a minimal reference common-emitter amplifier simulation backed by real ngspice.
 
-Built for the ENG29 2121 lab.
+## Lab 3 analytical DC bias modes
 
-## What it does
+The app preserves all three Lab 3 analytical modes:
 
-Choose a bias mode, enter its parameters, and the app returns the Q-point:
+| Mode | Inputs | Notes |
+|------|--------|-------|
+| Voltage Divider Bias | `VCC, R1, R2, RC, RE, beta, VBE` | Exact Thévenin solution + textbook approximation cross-check |
+| Fixed Bias | `VCC, RB, RC, beta, VBE` | `IB=(VCC-VBE)/RB`, `IC=beta*IB`, `VCE=VCC-IC*RC` |
+| Emitter Bias | `VCC, RB, RC, RE, beta, VBE` | `IB=(VCC-VBE)/(RB+(1+beta)*RE)` |
 
-| Mode | Parameters |
-|------|------------|
-| Voltage divider | `VCC`, `R1`, `R2`, `RC`, `RE`, `beta`, `VBE` |
-| Fixed bias | `VCC`, `RB`, `RC`, `beta`, `VBE` |
-| Emitter bias | `VCC`, `RB`, `RC`, `RE`, `beta`, `VBE` |
+Outputs include `IB, IC, IE, VB, VC, VE, VCE, PQ`, region (`Active/Cutoff/Saturation`), and validation errors with units.
 
-All modes return the same keys and units:
+## CE Amplifier Simulator v1 (ngspice)
 
-| Quantity | Unit |
-|----------|------|
-| `IB`, `IC`, `IE` | µA / mA |
-| `VB`, `VC`, `VE`, `VCE` | V |
-| `PQ` (transistor dissipation) | mW |
+A separate reference panel runs real ngspice on a fixed circuit:
 
-It also reports the region (**Active**, **Cutoff**, **Saturation**), lists
-validation errors instead of failing, and shows an independent
-cross-check:
+- `VCC=12 V`, `R1=100 kΩ`, `R2=22 kΩ`, `RC=2.2 kΩ`, `RE=1 kΩ`, `RL=10 kΩ`
+- `Cin=Cout=10 µF`, 2N3904 model, `27 °C`
+- User inputs: amplitude (mV peak) and frequency (Hz)
 
-- **Exact** — the base loop solved through the divider's Thévenin
-  equivalent: `IB = (VBB − VBE) / (RTH + (1 + β)RE)`.
-- **Approximate** — the rule-of-thumb that ignores base current:
-  `IE ≈ (VCC·R2/(R1+R2) − VBE) / RE`.
+Simulations:
+- **DC `.op`**: SPICE node voltages/currents vs analytical reference (`solve_exact`, `beta=300`, `VBE=0.7 V`). SPICE and analytical values may differ because models/assumptions differ.
+- **AC `.ac`**: gain magnitude (V/V, dB) and phase (deg), -3 dB points when found in sweep; otherwise `not determined in sweep range`.
+- **Transient `.tran`**: Vin/Vout waveforms, measured peak amplitude, gain, and phase/inversion.
 
-The page shows both `IC` and `VCE` plus the percentage divergence. Above
-5% the app warns that the approximation is unreliable — the divider is
-too lightly loaded or beta is too low.
+No traces, gains, or cutoff values are hard-coded. ngspice errors are shown directly in the UI.
 
-## Equations
+## ngspice setup
 
-**Fixed bias** (single supply, no `RE`):
+The app looks for ngspice in this order:
 
-```text
-IB  = (VCC - VBE) / RB
-IC  = beta * IB
-IE  = (1 + beta) * IB
-VE  = 0
-VB  = VBE
-VC  = VCC - IC * RC
-VCE = VC
-PQ  = VCE * IC
-```
+1. `NGSPICE_EXE` environment variable
+2. `ngspice_con` / `ngspice` on PATH
+3. `.tools/Spice64/bin/ngspice_con.exe` (local install, gitignored)
 
-**Emitter bias** (single supply, `RB` and `RE`):
-
-```text
-IB  = (VCC - VBE) / (RB + (1 + beta) * RE)
-IC  = beta * IB
-IE  = (1 + beta) * IB
-VE  = IE * RE
-VB  = VBE + VE
-VC  = VCC - IC * RC
-VCE = VC - VE
-PQ  = VCE * IC
-```
-
-Voltage-divider mode keeps its exact and approximate equations above.
-Inputs are SI (V, Ω); the app converts only for display (µA/mA, mW).
-`bjt.py` returns a dict with `mode`, `ib_a`, `ic_a`, `ie_a`, `vb_v`,
-`vc_v`, `ve_v`, `vce_v`, `pq_w`, and `region`; divider mode adds
-`vbb_v`, `rth_ohm`, and the cross-check fields.
-
-## Requirements
-
-- Python 3.12
-- Flask 3.x (installed from `requirements.txt`)
+Model file: `spice/models/2N3904.lib` (documented fallback). Override with `SPICE_MODEL`.
 
 ## Setup
 
 ```powershell
 python -m venv .venv
-```
-
-Activate the environment for your OS:
-
-```powershell
-# Windows PowerShell
 .venv\Scripts\Activate.ps1
-
-# Linux / macOS
-source .venv/bin/activate
-```
-
-Then install the dependency:
-
-```powershell
 python -m pip install -r requirements.txt
 ```
 
 ## Run
 
 ```powershell
-python -m flask --app app run --debug
+.venv\Scripts\python.exe -m flask --app app run --debug
 ```
 
-Open <http://127.0.0.1:5000/> in your browser.
+Open <http://127.0.0.1:5000/>.
 
 ## Test
 
-In another terminal, from the same environment:
-
 ```powershell
-python -m unittest discover -s tests -v
+.venv\Scripts\python.exe -m unittest discover -s tests -t . -v
 ```
-
-`tests/test_bjt.py` covers validation, the exact solution, region
-classification, and the cross-check. `tests/test_app.py` drives the Flask
-route with its test client.
-
-## Worked example
-
-`VCC = 12 V`, `R1 = 47 kΩ`, `R2 = 10 kΩ`, `RC = 4.7 kΩ`, `RE = 1 kΩ`,
-`beta = 150`, `VBE = 0.7 V`.
-
-| Result | Exact | Approximate |
-|--------|-------|-------------|
-| `IC` | 1.324 mA | 1.405 mA |
-| `VCE` | 4.446 V | 3.990 V |
-
-The exact solution puts the stage in the active region with
-`VB = 2.033 V`, `VE = 1.333 V`, `VC = 5.778 V`. The approximation is off by
-6.2%, so the app flags it as unreliable — a deliberate teaching case.
 
 ## Scope
 
-DC bias only. No AC analysis, gain, frequency response, transient
-simulation, circuit editor, or FET support.
-
-## Files
-
-```
-app.py                  Flask app factory, route, unit formatting
-bjt.py                  Engineering logic (no Flask imports)
-templates/index.html    Form and results
-static/style.css        Stylesheet
-tests/                  unittest suite
-```
+Analytical DC bias modes plus one fixed reference CE ngspice simulation. No circuit editor, no FET, no arbitrary netlist upload.

@@ -18,8 +18,8 @@
         <rect x="17.5" y="17.5" width="5" height="5" rx="1" fill="#0f8a8a"/>
       </svg>
       <div class="brand-text">
-        <h1>BJT Common-Emitter Amplifier <span class="title-sep">–</span> {{ mode_title }}</h1>
-        <p class="lede">DC operating point and operating region{% if mode == 'divider' %}, plus an independent cross-check{% endif %} for the NPN common-emitter stage.</p>
+        <h1>BJT Common-Emitter Amplifier <span class="title-sep">–</span> {{ config.title }}</h1>
+        <p class="lede">{{ config.lede }}</p>
       </div>
     </div>
     <div class="topbar-meta">
@@ -28,9 +28,9 @@
     </div>
   </header>
 
-  <nav class="mode-switch" aria-label="Bias mode">
-    {% for key, label in modes %}
-    <a class="mode-tab{% if key == mode %} is-active{% endif %}" href="{{ url_for('index', mode=key) }}">{{ label }}</a>
+  <nav class="mode-tabs" aria-label="Bias mode">
+    {% for key, item in modes.items() %}
+    <a class="mode-tab {% if key == mode %}is-active{% endif %}" data-mode="{{ key }}" href="/?mode={{ key }}">{{ item.label }}</a>
     {% endfor %}
   </nav>
 
@@ -51,8 +51,7 @@
         </svg>
         Parameters
       </h2>
-      <form method="post" action="/">
-        <input type="hidden" name="mode" value="{{ mode }}">
+      <form method="post" action="/?mode={{ mode }}">
         <div class="grid">
           {% for key, label, unit in fields %}
           <label for="{{ key }}">
@@ -81,10 +80,9 @@
         </svg>
         Circuit
       </h2>
-      {% if mode == 'divider' %}
       <figure class="circuit">
-        <img src="{{ url_for('static', filename='bjt-circuit.svg') }}" alt="NPN BJT common-emitter amplifier with voltage-divider bias: R1 and R2 set the base voltage, RC is the collector load, and RE is the emitter resistor.">
-        <figcaption>Voltage-divider biased NPN common-emitter stage.</figcaption>
+        <img src="{{ url_for('static', filename=config.circuit) }}" alt="{{ config.circuit_alt }}">
+        <figcaption>{{ config.circuit_caption }}</figcaption>
         <div class="legend" aria-hidden="true">
           <span><i class="dot dot-supply"></i>Supply</span>
           <span><i class="dot dot-current"></i>Current</span>
@@ -92,33 +90,10 @@
           <span><i class="dot dot-qpoint"></i>Q-point</span>
         </div>
       </figure>
-      {% elif mode == 'fixed' %}
-      <figure class="circuit">
-        <img src="{{ url_for('static', filename='bjt-fixed-circuit.svg') }}" alt="NPN BJT common-emitter amplifier with fixed bias: RB connects VCC to the base, RC connects VCC to the collector, and the emitter is grounded so VE is zero.">
-        <figcaption>Fixed-biased NPN common-emitter stage: RB sets the base current directly.</figcaption>
-        <div class="legend" aria-hidden="true">
-          <span><i class="dot dot-supply"></i>Supply</span>
-          <span><i class="dot dot-current"></i>Current</span>
-          <span><i class="dot dot-voltage"></i>Voltage</span>
-          <span><i class="dot dot-qpoint"></i>Q-point</span>
-        </div>
-      </figure>
-      {% else %}
-      <figure class="circuit">
-        <img src="{{ url_for('static', filename='bjt-emitter-circuit.svg') }}" alt="NPN BJT common-emitter amplifier with emitter bias: RB connects VCC to the base, RC connects VCC to the collector, and RE connects the emitter to ground.">
-        <figcaption>Emitter-biased NPN common-emitter stage: RE stabilises the operating point.</figcaption>
-        <div class="legend" aria-hidden="true">
-          <span><i class="dot dot-supply"></i>Supply</span>
-          <span><i class="dot dot-current"></i>Current</span>
-          <span><i class="dot dot-voltage"></i>Voltage</span>
-          <span><i class="dot dot-qpoint"></i>Q-point</span>
-        </div>
-      </figure>
-      {% endif %}
     </section>
 
     <section class="panel panel-results" aria-labelledby="results-title">
-      {% if result %}
+      {% if point %}
       <h2 id="results-title">
         <svg class="panel-icon" viewBox="0 0 16 16" aria-hidden="true">
           <path d="M2.5 13.5h11" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
@@ -126,19 +101,19 @@
           <rect x="6.9" y="5" width="2.2" height="7" rx=".4" fill="currentColor" opacity=".75"/>
           <rect x="10.3" y="2.5" width="2.2" height="9.5" rx=".4" fill="currentColor" opacity=".5"/>
         </svg>
-        Q-point <span class="badge region-{{ result.region }}">{{ result.region|capitalize }}</span>
+        Q-point <span class="badge region-{{ point.region }}">{{ point.region|capitalize }}</span>
       </h2>
       <table>
         <thead><tr><th>Quantity</th><th>Value</th></tr></thead>
         <tbody>
-          <tr><td>IB</td><td>{{ result.ib_a|current }}</td></tr>
-          <tr><td>IC</td><td>{{ result.ic_a|milliamps }}</td></tr>
-          <tr><td>IE</td><td>{{ result.ie_a|milliamps }}</td></tr>
-          <tr><td>VB</td><td>{{ result.vb_v|voltage }}</td></tr>
-          <tr><td>VC</td><td>{{ result.vc_v|voltage }}</td></tr>
-          <tr><td>VE</td><td>{{ result.ve_v|voltage }}</td></tr>
-          <tr><td>VCE</td><td>{{ result.vce_v|voltage }}</td></tr>
-          <tr><td>PQ</td><td>{{ result.pq_w|power }}</td></tr>
+          <tr><td>IB</td><td>{{ point.ib_a|current }}</td></tr>
+          <tr><td>IC</td><td>{{ point.ic_a|milliamps }}</td></tr>
+          <tr><td>IE</td><td>{{ point.ie_a|milliamps }}</td></tr>
+          <tr><td>VB</td><td>{{ point.vb_v|voltage }}</td></tr>
+          <tr><td>VC</td><td>{{ point.vc_v|voltage }}</td></tr>
+          <tr><td>VE</td><td>{{ point.ve_v|voltage }}</td></tr>
+          <tr><td>VCE</td><td>{{ point.vce_v|voltage }}</td></tr>
+          <tr><td>PQ</td><td>{{ point.pq_w|power }}</td></tr>
         </tbody>
       </table>
 
@@ -148,8 +123,8 @@
         <table>
           <thead><tr><th>Quantity</th><th>Exact (Thevenin)</th><th>Approximate</th></tr></thead>
           <tbody>
-            <tr><td>IC</td><td>{{ result.ic_a|milliamps }}</td><td>{{ comparison.ic_approx_a|milliamps }}</td></tr>
-            <tr><td>VCE</td><td>{{ result.vce_v|voltage }}</td><td>{{ comparison.vce_approx_a|voltage }}</td></tr>
+            <tr><td>IC</td><td>{{ point.ic_a|milliamps }}</td><td>{{ comparison.ic_approx_a|milliamps }}</td></tr>
+            <tr><td>VCE</td><td>{{ point.vce_v|voltage }}</td><td>{{ comparison.vce_approx_a|voltage }}</td></tr>
             <tr><td>Divergence</td><td colspan="2">{{ comparison.divergence_pct|percent }}</td></tr>
           </tbody>
         </table>
@@ -166,10 +141,90 @@
         </svg>
         DC Bias results
       </h2>
-      <p class="placeholder">Enter the parameters and choose <strong>Solve Q-point</strong> to see the operating point{% if mode == 'divider' %}, region, and cross-check{% else %} and region{% endif %}.</p>
+      <p class="placeholder">Enter the parameters and choose <strong>Solve Q-point</strong> to see the operating point, region, and cross-check.</p>
       {% endif %}
     </section>
   </div>
+
+  <section class="panel sim-panel" aria-labelledby="sim-title">
+    <h2 id="sim-title">Reference CE Amplifier Simulator (ngspice)</h2>
+    <p class="lede sim-lede">Fixed reference circuit: VCC=12 V, R1=100 kΩ, R2=22 kΩ, RC=2.2 kΩ, RE=1 kΩ, RL=10 kΩ, Cin=Cout=10 µF, 2N3904 model. SPICE results come from real ngspice runs.</p>
+
+    {% if sim_errors %}
+    <ul class="errors">
+      {% for error in sim_errors %}<li>{{ error }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% if sim_error %}
+    <div class="sim-error">{{ sim_error }}</div>
+    {% endif %}
+
+    <form method="post" action="/simulate?mode={{ mode }}" class="sim-form">
+      <label for="amplitude_mv">
+        <span class="label">Amplitude</span>
+        <div class="input-wrap">
+          <input id="amplitude_mv" name="amplitude_mv" value="{{ sim_values.amplitude_mv }}" inputmode="decimal" autocomplete="off">
+          <span class="unit-suffix">mV peak</span>
+        </div>
+      </label>
+      <label for="frequency_hz">
+        <span class="label">Frequency</span>
+        <div class="input-wrap">
+          <input id="frequency_hz" name="frequency_hz" value="{{ sim_values.frequency_hz }}" inputmode="decimal" autocomplete="off">
+          <span class="unit-suffix">Hz</span>
+        </div>
+      </label>
+      <button type="submit" class="sim-button">Run SPICE simulation</button>
+    </form>
+
+    {% if sim_result %}
+    <div class="sim-results">
+      <div class="sim-grid">
+        <div>
+          <h3>SPICE DC operating point (.op)</h3>
+          <table>
+            <thead><tr><th>Quantity</th><th>SPICE</th><th>Analytical reference</th></tr></thead>
+            <tbody>
+              <tr><td>IB</td><td>{{ sim_result.spice.dc.ib_a|current }}</td><td>{{ sim_result.analytical.ib_a|current }}</td></tr>
+              <tr><td>IC</td><td>{{ sim_result.spice.dc.ic_a|milliamps }}</td><td>{{ sim_result.analytical.ic_a|milliamps }}</td></tr>
+              <tr><td>IE</td><td>{{ sim_result.spice.dc.ie_a|milliamps }}</td><td>{{ sim_result.analytical.ie_a|milliamps }}</td></tr>
+              <tr><td>VB</td><td>{{ sim_result.spice.dc.vb_v|voltage }}</td><td>{{ sim_result.analytical.vb_v|voltage }}</td></tr>
+              <tr><td>VC</td><td>{{ sim_result.spice.dc.vc_v|voltage }}</td><td>{{ sim_result.analytical.vc_v|voltage }}</td></tr>
+              <tr><td>VE</td><td>{{ sim_result.spice.dc.ve_v|voltage }}</td><td>{{ sim_result.analytical.ve_v|voltage }}</td></tr>
+              <tr><td>VCE</td><td>{{ sim_result.spice.dc.vce_v|voltage }}</td><td>{{ sim_result.analytical.vce_v|voltage }}</td></tr>
+              <tr><td>Region</td><td>{{ sim_result.spice.dc.region|capitalize }}</td><td>{{ sim_result.analytical.region|capitalize }}</td></tr>
+            </tbody>
+          </table>
+          <p class="sim-note">{{ sim_result.analytical.assumptions }} SPICE values are model-based and may differ.</p>
+        </div>
+        <div>
+          <h3>AC frequency response (.ac)</h3>
+          <table>
+            <tbody>
+              <tr><td>Gain @ selected f</td><td>{{ "%.4g"|format(sim_result.spice.ac.gain_vv) }} V/V ({{ "%.3f"|format(sim_result.spice.ac.gain_db) }} dB)</td></tr>
+              <tr><td>Phase @ selected f</td><td>{{ "%.2f"|format(sim_result.spice.ac.phase_deg) }} deg</td></tr>
+              <tr><td>Low -3 dB</td><td>{% if sim_result.spice.ac.low_cutoff_hz %}{{ "%.4g"|format(sim_result.spice.ac.low_cutoff_hz) }} Hz{% else %}not determined in sweep range{% endif %}</td></tr>
+              <tr><td>High -3 dB</td><td>{% if sim_result.spice.ac.high_cutoff_hz %}{{ "%.4g"|format(sim_result.spice.ac.high_cutoff_hz) }} Hz{% else %}not determined in sweep range{% endif %}</td></tr>
+            </tbody>
+          </table>
+          <h3>Transient response (.tran)</h3>
+          <table>
+            <tbody>
+              <tr><td>Vin amplitude</td><td>{{ "%.4g"|format(sim_result.meta.amplitude_mv_peak) }} mV peak</td></tr>
+              <tr><td>Vout amplitude</td><td>{{ "%.4g"|format(sim_result.spice.tran.vout_peak_v * 1000) }} mV peak</td></tr>
+              <tr><td>Gain</td><td>{{ "%.4g"|format(sim_result.spice.tran.gain_vv) }} V/V</td></tr>
+              <tr><td>Phase</td><td>{{ "%.2f"|format(sim_result.spice.tran.phase_deg) }} deg {% if sim_result.spice.tran.phase_inverted %}(inverted){% endif %}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="sim-charts">
+        <div class="sim-chart">{{ sim_ac_svg|safe }}</div>
+        <div class="sim-chart">{{ sim_tran_svg|safe }}</div>
+      </div>
+    </div>
+    {% endif %}
+  </section>
 </main>
 </body>
 </html>

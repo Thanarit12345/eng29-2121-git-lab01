@@ -218,6 +218,94 @@ def solve_exact(inputs: BiasInputs) -> OperatingPoint:
     ))
 
 
+def solve_fixed_bias(inputs: FixedBiasInputs) -> OperatingPoint:
+    """Solve a fixed-bias NPN stage where RB connects VCC to base."""
+    vbb_v = inputs.vcc_v
+    rth_ohm = inputs.rb_ohm
+
+    if vbb_v <= inputs.vbe_v:
+        return _checked(OperatingPoint(
+            vbb_v=vbb_v,
+            rth_ohm=rth_ohm,
+            ib_a=0.0,
+            ic_a=0.0,
+            ie_a=0.0,
+            vb_v=vbb_v,
+            vc_v=inputs.vcc_v,
+            ve_v=0.0,
+            vce_v=inputs.vcc_v,
+            pq_w=0.0,
+            region="cutoff",
+        ))
+
+    ib_a = (vbb_v - inputs.vbe_v) / inputs.rb_ohm
+    ic_a = inputs.beta * ib_a
+    ie_a = (1 + inputs.beta) * ib_a
+    ve_v = 0.0
+    vb_v = inputs.vbe_v
+    vc_v = inputs.vcc_v - ic_a * inputs.rc_ohm
+    vce_v = vc_v - ve_v
+    pq_w = vce_v * ic_a
+
+    return _checked(OperatingPoint(
+        vbb_v=vbb_v,
+        rth_ohm=rth_ohm,
+        ib_a=ib_a,
+        ic_a=ic_a,
+        ie_a=ie_a,
+        vb_v=vb_v,
+        vc_v=vc_v,
+        ve_v=ve_v,
+        vce_v=vce_v,
+        pq_w=pq_w,
+        region="saturation" if vce_v < 0.2 else "active",
+    ))
+
+
+def solve_emitter_bias(inputs: EmitterBiasInputs) -> OperatingPoint:
+    """Solve an emitter-stabilized bias stage with RB from VCC to base."""
+    vbb_v = inputs.vcc_v
+    rth_ohm = inputs.rb_ohm
+
+    if vbb_v <= inputs.vbe_v:
+        return _checked(OperatingPoint(
+            vbb_v=vbb_v,
+            rth_ohm=rth_ohm,
+            ib_a=0.0,
+            ic_a=0.0,
+            ie_a=0.0,
+            vb_v=vbb_v,
+            vc_v=inputs.vcc_v,
+            ve_v=0.0,
+            vce_v=inputs.vcc_v,
+            pq_w=0.0,
+            region="cutoff",
+        ))
+
+    ib_a = (vbb_v - inputs.vbe_v) / (inputs.rb_ohm + (1 + inputs.beta) * inputs.re_ohm)
+    ic_a = inputs.beta * ib_a
+    ie_a = (1 + inputs.beta) * ib_a
+    ve_v = ie_a * inputs.re_ohm
+    vb_v = inputs.vbe_v + ve_v
+    vc_v = inputs.vcc_v - ic_a * inputs.rc_ohm
+    vce_v = vc_v - ve_v
+    pq_w = vce_v * ic_a
+
+    return _checked(OperatingPoint(
+        vbb_v=vbb_v,
+        rth_ohm=rth_ohm,
+        ib_a=ib_a,
+        ic_a=ic_a,
+        ie_a=ie_a,
+        vb_v=vb_v,
+        vc_v=vc_v,
+        ve_v=ve_v,
+        vce_v=vce_v,
+        pq_w=pq_w,
+        region="saturation" if vce_v < 0.2 else "active",
+    ))
+
+
 def compare(inputs: BiasInputs, exact: OperatingPoint) -> Comparison:
     """Cross-check the exact solution with the textbook approximation."""
     vb_approx_v = inputs.vcc_v * inputs.r2_ohm / (inputs.r1_ohm + inputs.r2_ohm)

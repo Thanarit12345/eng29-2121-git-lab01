@@ -100,3 +100,37 @@ class TestLayout(unittest.TestCase):
         self.assertIn("Q-point", results)
         self.assertIn("Independent cross-check", results)
         self.assertIn("Active", results)
+
+
+class TestModes(unittest.TestCase):
+    def setUp(self):
+        app = create_app()
+        app.config.update(TESTING=True)
+        self.client = app.test_client()
+
+    def test_get_renders_three_tabs(self):
+        body = self.client.get("/").get_data(as_text=True)
+        self.assertIn('data-mode="divider"', body)
+        self.assertIn('data-mode="fixed"', body)
+        self.assertIn('data-mode="emitter"', body)
+
+    def test_fixed_mode_defaults(self):
+        body = self.client.get("/?mode=fixed").get_data(as_text=True)
+        self.assertIn('name="rb"', body)
+        self.assertIn('value="470000"', body)
+        self.assertIn("/static/bjt-fixed-bias.svg", body)
+
+    def test_emitter_mode_post(self):
+        body = self.client.post("/?mode=emitter", data={
+            "vcc": "12", "rb": "470000", "rc": "2200", "re": "1000", "beta": "150", "vbe": "0.7"
+        }).get_data(as_text=True)
+        self.assertIn("2.729 mA", body)
+        self.assertIn("3.248 V", body)
+        self.assertIn("Active", body)
+
+    def test_fixed_mode_post(self):
+        body = self.client.post("/?mode=fixed", data={
+            "vcc": "12", "rb": "470000", "rc": "2200", "beta": "150", "vbe": "0.7"
+        }).get_data(as_text=True)
+        self.assertIn("3.606 mA", body)
+        self.assertIn("4.066 V", body)
