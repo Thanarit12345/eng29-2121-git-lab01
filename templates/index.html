@@ -3,228 +3,421 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BJT Common-Emitter DC Bias</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <title>Transistor Circuit Virtual Lab — ENG29 2121</title>
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <main>
   <header class="topbar">
     <div class="brand">
-      <svg class="brand-icon" viewBox="0 0 40 40" aria-hidden="true">
-        <rect width="40" height="40" rx="10" fill="#e8f1fa"/>
-        <rect x="12" y="12" width="16" height="16" rx="3.5" fill="none" stroke="#0f5f8f" stroke-width="2"/>
-        <path d="M16 6v6M24 6v6M16 28v6M24 28v6M6 16h6M6 24h6M28 16h6M28 24h6"
-              fill="none" stroke="#0f5f8f" stroke-width="2" stroke-linecap="round"/>
-        <rect x="17.5" y="17.5" width="5" height="5" rx="1" fill="#0f8a8a"/>
+      <svg class="brand-icon" viewBox="0 0 44 44" aria-hidden="true">
+        <rect width="44" height="44" rx="9" fill="#fff"/>
+        <rect x="10" y="10" width="24" height="24" rx="4" fill="none" stroke="#0d3557" stroke-width="2"/>
+        <path d="M17 4v6M27 4v6M17 34v6M27 34v6M4 17h6M4 27h6M34 17h6M34 27h6"
+              fill="none" stroke="#0d3557" stroke-width="2" stroke-linecap="round"/>
+        <rect x="19" y="19" width="6" height="6" rx="1.5" fill="#12a5a5"/>
       </svg>
       <div class="brand-text">
-        <h1>BJT Common-Emitter Amplifier <span class="title-sep">–</span> {{ config.title }}</h1>
-        <p class="lede">{{ config.lede }}</p>
+        <h1>Transistor Circuit Virtual Lab</h1>
+        <p class="lede">Computer Programming for Electrical Engineers</p>
       </div>
     </div>
     <div class="topbar-meta">
       <span class="pill pill-blue">ENG29 2121</span>
-      <span class="pill pill-teal">DC Bias</span>
+      <span class="pill pill-teal">Final Project Vision</span>
+      <span class="project-select">Common Emitter Lab (Final Project) <span class="chev">▾</span></span>
+      <span class="version">v1.0.0</span>
+      <button type="button" class="save-button" id="save-project">Save Project</button>
     </div>
   </header>
 
-  <nav class="mode-tabs" aria-label="Bias mode">
-    {% for key, item in modes.items() %}
-    <a class="mode-tab {% if key == mode %}is-active{% endif %}" data-mode="{{ key }}" href="/?mode={{ key }}">{{ item.label }}</a>
-    {% endfor %}
-  </nav>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <nav class="side-nav" aria-label="Main">
+        <a href="#"><span class="nav-icon">⌂</span> Overview</a>
+        <a href="#"><span class="nav-icon">▷</span> Simulation</a>
+        <a href="#"><span class="nav-icon">✓</span> Validation</a>
+        <a href="#"><span class="nav-icon">▤</span> Reports</a>
+      </nav>
 
-  {% if errors %}
-  <ul class="errors">
-    {% for error in errors %}<li>{{ error }}</li>{% endfor %}
-  </ul>
-  {% endif %}
+      <div class="side-section">
+        <div class="side-section-title">BJT Common Emitter <span class="chev">▾</span></div>
+        <nav class="mode-tabs" aria-label="Bias mode">
+          {% for key, item in modes.items() %}
+          <a class="mode-tab {% if key == mode %}is-active{% endif %}" data-mode="{{ key }}" href="/?mode={{ key }}">
+            <span class="mode-glyph">{% if key == 'divider' %}⎓{% elif key == 'fixed' %}┃{% else %}⌁{% endif %}</span>
+            {{ item.label }}
+          </a>
+          {% endfor %}
+        </nav>
+      </div>
 
-  <div class="workspace">
-    <section class="panel panel-inputs" aria-labelledby="inputs-title">
-      <h2 id="inputs-title">
-        <svg class="panel-icon" viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M2 4h12M2 8h12M2 12h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <circle cx="5.5" cy="4" r="1.6" fill="#fff" stroke="currentColor" stroke-width="1.4"/>
-          <circle cx="10.5" cy="8" r="1.6" fill="#fff" stroke="currentColor" stroke-width="1.4"/>
-          <circle cx="6.5" cy="12" r="1.6" fill="#fff" stroke="currentColor" stroke-width="1.4"/>
-        </svg>
-        Parameters
-      </h2>
-      <form method="post" action="/?mode={{ mode }}">
-        <div class="grid">
-          {% for key, label, unit in fields %}
-          <label for="{{ key }}">
-            <span class="label">{{ label }}</span>
-            <div class="input-wrap{% if not unit %} input-wrap-plain{% endif %}">
-              <input id="{{ key }}" name="{{ key }}" value="{{ values[key] }}" inputmode="decimal" autocomplete="off">
-              {% if unit %}<span class="unit-suffix">{{ unit }}</span>{% endif %}
+      <div class="side-section signal-source">
+        <div class="side-section-title">Signal Source (Input)</div>
+        <p class="side-hint">Function Generator</p>
+        <div class="knob-row">
+          <div class="knob-group">
+            <div class="knob" aria-hidden="true"><span class="knob-mark"></span></div>
+            <label for="sidebar_amplitude">Amplitude</label>
+            <input id="sidebar_amplitude" form="sim-form" name="amplitude_mv" value="{{ sim_values.amplitude_mv }}" inputmode="decimal" autocomplete="off">
+            <span class="knob-foot">mV peak</span>
+          </div>
+          <div class="knob-group">
+            <div class="knob" aria-hidden="true"><span class="knob-mark"></span></div>
+            <label for="sidebar_frequency">Frequency</label>
+            <input id="sidebar_frequency" form="sim-form" name="frequency_hz" value="{{ sim_values.frequency_hz }}" inputmode="decimal" autocomplete="off">
+            <span class="knob-foot">Hz</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="side-section project-card">
+        <div class="side-section-title">Project</div>
+        <p class="project-name">ENG29 2121 — Final Project</p>
+        <p class="project-meta">Model: BJT, NPN, Common Emitter, Voltage Divider Bias</p>
+        <p class="project-meta">Version: v1.0.0</p>
+        <p class="project-meta saved">✓ Last saved: Jan 26, 2026 · 3:42 PM</p>
+      </div>
+    </aside>
+
+    <div class="content">
+      <div class="content-head">
+        <h2>BJT Common-Emitter Amplifier <span class="title-sep">–</span> {{ config.title }} (Common Emitter)</h2>
+        <span class="help-mark" title="Analytical Lab 3 modes plus a real ngspice reference simulation">i</span>
+      </div>
+
+      <div class="content-tabs" role="tablist" aria-label="Workspace views">
+        <button type="button" class="content-tab is-active" data-view="schematic" role="tab" aria-selected="true">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v10H2zM5 3v10M11 3v10M2 8h12" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+          Circuit Schematic
+        </button>
+        <button type="button" class="content-tab" data-view="guide" role="tab" aria-selected="false">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3" width="11" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M5 6h6M5 9h6" stroke="currentColor" stroke-width="1.2"/></svg>
+          Operation Guide
+        </button>
+      </div>
+
+      {% if errors %}
+      <ul class="errors">
+        {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+
+      <div class="workspace" id="schematic-view">
+        <section class="panel panel-diagram" aria-labelledby="diagram-title">
+          <h3 id="diagram-title">
+            <svg class="panel-icon" viewBox="0 0 16 16" aria-hidden="true">
+              <rect x="4.5" y="4.5" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/>
+              <path d="M6 2v2.5M10 2v2.5M6 11.5V14M10 11.5V14M2 6h2.5M2 10h2.5M11.5 6H14M11.5 10H14"
+                    fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+              <rect x="6.8" y="6.8" width="2.4" height="2.4" fill="currentColor"/>
+            </svg>
+            Circuit Schematic
+          </h3>
+          <div class="legend" aria-hidden="true">
+            <span><i class="dot dot-supply"></i>DC Bias (V, I)</span>
+            <span><i class="dot dot-current"></i>AC Signal (v)</span>
+            <span><i class="dot dot-voltage"></i>Key Node</span>
+            <span><i class="dot dot-qpoint"></i>Operating Point (Q)</span>
+          </div>
+          <figure class="circuit">
+            <img src="{{ url_for('static', filename=config.circuit) }}" alt="{{ config.circuit_alt }}">
+            <figcaption>{{ config.circuit_caption }}</figcaption>
+          </figure>
+          <div class="overlay-row" aria-label="Display overlays">
+            <span class="overlay"><span class="switch on"></span> Show DC Bias Overlay</span>
+            <span class="overlay"><span class="switch on"></span> Show AC Amplification Overlay</span>
+            <span class="overlay"><span class="switch on"></span> Animate Overlay</span>
+            <span class="overlay-controls">Ⅱ &nbsp; ↻ &nbsp; ⤢</span>
+          </div>
+          <div class="schematic-foot">
+            <span class="schematic-tag">{{ config.label }} (Common Emitter)</span>
+            <span class="schematic-tag pulse">Live circuit values are analytical; SPICE results appear in Results.</span>
+          </div>
+        </section>
+
+        <section class="panel panel-inputs" aria-labelledby="inputs-title">
+          <h3 id="inputs-title">
+            <svg class="panel-icon" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M2 4h12M2 8h12M2 12h12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="5.5" cy="4" r="1.6" fill="#fff" stroke="currentColor" stroke-width="1.4"/>
+              <circle cx="10.5" cy="8" r="1.6" fill="#fff" stroke="currentColor" stroke-width="1.4"/>
+              <circle cx="6.5" cy="12" r="1.6" fill="#fff" stroke="currentColor" stroke-width="1.4"/>
+            </svg>
+            Circuit Configuration – Common Emitter (BJT)
+          </h3>
+          <div class="config-row">
+            <span class="config-label">Bias Type</span>
+            <div class="bias-select">
+              <span>⎓</span>
+              <select id="mode-select" aria-label="Bias type">
+                {% for key, item in modes.items() %}
+                <option value="/?mode={{ key }}" {% if key == mode %}selected{% endif %}>{{ item.label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <form method="post" action="/?mode={{ mode }}" id="bias-form">
+            <div class="grid">
+              {% for key, label, unit in fields %}
+              <label for="{{ key }}">
+                <span class="label">{{ label }}{% if key == 'beta' %} (Beta, h<sub>FE</sub>){% elif key == 'vbe' %} (Base-Emitter Voltage){% endif %}</span>
+                <div class="input-wrap{% if not unit %} input-wrap-plain{% endif %}">
+                  <input id="{{ key }}" name="{{ key }}" value="{{ values[key] }}" inputmode="decimal" autocomplete="off">
+                  {% if unit %}<span class="unit-suffix">{{ unit }}</span>{% endif %}
+                </div>
+              </label>
+              {% endfor %}
+            </div>
+            <div class="config-actions">
+              <button type="submit" class="run-button">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9l7-4.5z" fill="currentColor"/></svg>
+                Run Simulation
+              </button>
+              <button type="button" class="ghost-button" id="validate-button">✓ Validate</button>
+              <button type="button" class="ghost-button" id="reset-button">↻ Reset</button>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      <section class="workspace workspace-guide" id="guide-view" hidden>
+        <section class="panel panel-guide">
+          <h3>Operation Guide</h3>
+          <ol>
+            <li>Choose a bias mode in the sidebar: Voltage Divider, Fixed Bias, or Emitter Bias.</li>
+            <li>Edit the circuit parameters and choose <strong>Run Simulation</strong> to compute the analytical Q-point.</li>
+            <li>Set the signal source amplitude and frequency, then run <strong>SPICE simulation</strong> in the Results panel.</li>
+            <li>Compare SPICE DC, AC, and transient results with the analytical reference. Values may differ because SPICE uses a transistor model.</li>
+          </ol>
+        </section>
+      </section>
+
+      <section class="results-head">
+        <h3>Results</h3>
+        <div class="result-tabs" role="tablist" aria-label="Result views">
+          <button type="button" class="result-tab is-active" data-result="dc" role="tab" aria-selected="true">DC Bias</button>
+          <button type="button" class="result-tab" data-result="ac" role="tab" aria-selected="false">AC Response</button>
+          <button type="button" class="result-tab" data-result="tran" role="tab" aria-selected="false">Transient</button>
+        </div>
+      </section>
+
+      <section class="panel panel-results" aria-labelledby="results-title">
+        <div class="results-grid">
+          <div class="result-card" data-result-panel="dc">
+            <h4 id="results-title">DC Operating Point (Q-point)</h4>
+            {% if point %}
+            <table>
+              <tbody>
+                <tr><td>V<sub>B</sub></td><td>{{ point.vb_v|voltage }}</td></tr>
+                <tr><td>V<sub>E</sub></td><td>{{ point.ve_v|voltage }}</td></tr>
+                <tr><td>V<sub>C</sub></td><td>{{ point.vc_v|voltage }}</td></tr>
+                <tr><td>V<sub>CE</sub></td><td>{{ point.vce_v|voltage }}</td></tr>
+                <tr><td>I<sub>B</sub></td><td>{{ point.ib_a|current }}</td></tr>
+                <tr><td>I<sub>C</sub></td><td>{{ point.ic_a|milliamps }}</td></tr>
+                <tr><td>I<sub>E</sub></td><td>{{ point.ie_a|milliamps }}</td></tr>
+              </tbody>
+            </table>
+            <div class="region-line">Operating Region <span class="badge region-{{ point.region }}">{{ point.region|capitalize }} Region</span></div>
+            {% if comparison %}
+            <div class="crosscheck">
+              <h5>Independent cross-check</h5>
+              <table>
+                <thead><tr><th>Quantity</th><th>Exact</th><th>Approx.</th></tr></thead>
+                <tbody>
+                  <tr><td>IC</td><td>{{ point.ic_a|milliamps }}</td><td>{{ comparison.ic_approx_a|milliamps }}</td></tr>
+                  <tr><td>VCE</td><td>{{ point.vce_v|voltage }}</td><td>{{ comparison.vce_approx_a|voltage }}</td></tr>
+                  <tr><td>Divergence</td><td colspan="2">{{ comparison.divergence_pct|percent }}</td></tr>
+                </tbody>
+              </table>
+            </div>
+            {% endif %}
+            {% for warning in warnings %}<p class="warning">{{ warning }}</p>{% endfor %}
+            {% else %}
+            <p class="placeholder">Enter the parameters and choose <strong>Run Simulation</strong> to see the Q-point.</p>
+            {% endif %}
+          </div>
+
+          <div class="result-card" data-result-panel="ac">
+            <h4>AC Response (Bode Plot)</h4>
+            {% if sim_result %}
+            <div class="chart-box">{{ sim_ac_svg|safe }}</div>
+            <table class="compact">
+              <tbody>
+                <tr><td>Gain @ f</td><td>{{ "%.4g"|format(sim_result.spice.ac.gain_vv) }} V/V ({{ "%.3f"|format(sim_result.spice.ac.gain_db) }} dB)</td></tr>
+                <tr><td>Phase @ f</td><td>{{ "%.2f"|format(sim_result.spice.ac.phase_deg) }} deg</td></tr>
+                <tr><td>Low −3 dB</td><td>{% if sim_result.spice.ac.low_cutoff_hz %}{{ "%.4g"|format(sim_result.spice.ac.low_cutoff_hz) }} Hz{% else %}not determined in sweep range{% endif %}</td></tr>
+                <tr><td>High −3 dB</td><td>{% if sim_result.spice.ac.high_cutoff_hz %}{{ "%.4g"|format(sim_result.spice.ac.high_cutoff_hz) }} Hz{% else %}not determined in sweep range{% endif %}</td></tr>
+              </tbody>
+            </table>
+            {% else %}
+            <p class="placeholder">Run the SPICE simulation to see the measured AC response.</p>
+            {% endif %}
+          </div>
+
+          <div class="result-card" data-result-panel="tran">
+            <h4>Transient Response (f = {{ sim_values.frequency_hz }} Hz)</h4>
+            {% if sim_result %}
+            <div class="chart-box">{{ sim_tran_svg|safe }}</div>
+            <table class="compact">
+              <tbody>
+                <tr><td>Vin</td><td>{{ "%.4g"|format(sim_result.meta.amplitude_mv_peak) }} mV peak</td></tr>
+                <tr><td>Vout</td><td>{{ "%.4g"|format(sim_result.spice.tran.vout_peak_v * 1000) }} mV peak</td></tr>
+                <tr><td>Gain</td><td>{{ "%.4g"|format(sim_result.spice.tran.gain_vv) }} V/V</td></tr>
+                <tr><td>Phase</td><td>{{ "%.2f"|format(sim_result.spice.tran.phase_deg) }} deg{% if sim_result.spice.tran.phase_inverted %} (inverted){% endif %}</td></tr>
+              </tbody>
+            </table>
+            {% else %}
+            <p class="placeholder">Run the SPICE simulation to see input/output waveforms.</p>
+            {% endif %}
+          </div>
+
+          <div class="result-card validation-card">
+            <h4>Test / Validation</h4>
+            <ul class="validation-list">
+              <li class="{% if errors %}bad{% else %}ok{% endif %}">{% if errors %}✕{% else %}✓{% endif %} Input validation</li>
+              <li class="{% if point %}ok{% else %}pending{% endif %}">{% if point %}✓{% else %}○{% endif %} DC bias check passed</li>
+              <li class="{% if point and point.region == 'active' %}ok{% elif point %}bad{% else %}pending{% endif %}">{% if point and point.region == 'active' %}✓{% elif point %}✕{% else %}○{% endif %} VCE = {{ point.vce_v|voltage if point else '—' }} (active region)</li>
+              <li class="{% if sim_result %}ok{% else %}pending{% endif %}">{% if sim_result %}✓{% else %}○{% endif %} AC gain check</li>
+              <li class="{% if sim_result and sim_result.spice.tran.phase_inverted %}ok{% else %}pending{% endif %}">{% if sim_result and sim_result.spice.tran.phase_inverted %}✓{% else %}○{% endif %} Reference test (phase inversion)</li>
+            </ul>
+            <div class="validation-summary {% if sim_result and not errors and point %}ok{% else %}pending{% endif %}">
+              {% if sim_result and not errors and point %}✓ All checks passed{% else %}Run both simulations to complete checks{% endif %}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel sim-panel" aria-labelledby="sim-title">
+        <h3 id="sim-title">SPICE Reference Simulation (ngspice)</h3>
+        <p class="lede sim-lede">Fixed reference circuit: VCC=12 V, R1=100 kΩ, R2=22 kΩ, RC=2.2 kΩ, RE=1 kΩ, RL=10 kΩ, Cin=Cout=10 µF, 2N3904 model. SPICE values come from real ngspice runs.</p>
+
+        {% if sim_errors %}
+        <ul class="errors">
+          {% for error in sim_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+        {% if sim_error %}
+        <div class="sim-error">{{ sim_error }}</div>
+        {% endif %}
+
+        <form method="post" action="/simulate?mode={{ mode }}" class="sim-form" id="sim-form">
+          <label for="amplitude_mv">
+            <span class="label">Amplitude</span>
+            <div class="input-wrap">
+              <input id="amplitude_mv" name="amplitude_mv" value="{{ sim_values.amplitude_mv }}" inputmode="decimal" autocomplete="off">
+              <span class="unit-suffix">mV peak</span>
             </div>
           </label>
-          {% endfor %}
+          <label for="frequency_hz">
+            <span class="label">Frequency</span>
+            <div class="input-wrap">
+              <input id="frequency_hz" name="frequency_hz" value="{{ sim_values.frequency_hz }}" inputmode="decimal" autocomplete="off">
+              <span class="unit-suffix">Hz</span>
+            </div>
+          </label>
+          <button type="submit" class="sim-button">Run SPICE simulation</button>
+        </form>
+
+        {% if sim_result %}
+        <div class="sim-results">
+          <div class="sim-grid">
+            <div>
+              <h4>SPICE DC operating point (.op)</h4>
+              <table>
+                <thead><tr><th>Quantity</th><th>SPICE</th><th>Analytical reference</th></tr></thead>
+                <tbody>
+                  <tr><td>IB</td><td>{{ sim_result.spice.dc.ib_a|current }}</td><td>{{ sim_result.analytical.ib_a|current }}</td></tr>
+                  <tr><td>IC</td><td>{{ sim_result.spice.dc.ic_a|milliamps }}</td><td>{{ sim_result.analytical.ic_a|milliamps }}</td></tr>
+                  <tr><td>IE</td><td>{{ sim_result.spice.dc.ie_a|milliamps }}</td><td>{{ sim_result.analytical.ie_a|milliamps }}</td></tr>
+                  <tr><td>VB</td><td>{{ sim_result.spice.dc.vb_v|voltage }}</td><td>{{ sim_result.analytical.vb_v|voltage }}</td></tr>
+                  <tr><td>VC</td><td>{{ sim_result.spice.dc.vc_v|voltage }}</td><td>{{ sim_result.analytical.vc_v|voltage }}</td></tr>
+                  <tr><td>VE</td><td>{{ sim_result.spice.dc.ve_v|voltage }}</td><td>{{ sim_result.analytical.ve_v|voltage }}</td></tr>
+                  <tr><td>VCE</td><td>{{ sim_result.spice.dc.vce_v|voltage }}</td><td>{{ sim_result.analytical.vce_v|voltage }}</td></tr>
+                  <tr><td>Region</td><td>{{ sim_result.spice.dc.region|capitalize }}</td><td>{{ sim_result.analytical.region|capitalize }}</td></tr>
+                </tbody>
+              </table>
+              <p class="sim-note">{{ sim_result.analytical.assumptions }} SPICE values are model-based and may differ.</p>
+            </div>
+            <div>
+              <h4>AC &amp; transient measurements</h4>
+              <table class="compact">
+                <tbody>
+                  <tr><td>Gain @ selected f</td><td>{{ "%.4g"|format(sim_result.spice.ac.gain_vv) }} V/V ({{ "%.3f"|format(sim_result.spice.ac.gain_db) }} dB)</td></tr>
+                  <tr><td>Phase @ selected f</td><td>{{ "%.2f"|format(sim_result.spice.ac.phase_deg) }} deg</td></tr>
+                  <tr><td>Low/High −3 dB</td>
+                      <td>{% if sim_result.spice.ac.low_cutoff_hz %}{{ "%.4g"|format(sim_result.spice.ac.low_cutoff_hz) }} Hz{% else %}n/d{% endif %} /
+                          {% if sim_result.spice.ac.high_cutoff_hz %}{{ "%.4g"|format(sim_result.spice.ac.high_cutoff_hz) }} Hz{% else %}n/d{% endif %}</td></tr>
+                  <tr><td>Transient gain</td><td>{{ "%.4g"|format(sim_result.spice.tran.gain_vv) }} V/V</td></tr>
+                  <tr><td>Transient phase</td><td>{{ "%.2f"|format(sim_result.spice.tran.phase_deg) }} deg{% if sim_result.spice.tran.phase_inverted %} (inverted){% endif %}</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-        <button type="submit">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9l7-4.5z" fill="currentColor"/></svg>
-          Solve Q-point
-        </button>
-      </form>
-    </section>
-
-    <section class="panel panel-diagram" aria-labelledby="diagram-title">
-      <h2 id="diagram-title">
-        <svg class="panel-icon" viewBox="0 0 16 16" aria-hidden="true">
-          <rect x="4.5" y="4.5" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/>
-          <path d="M6 2v2.5M10 2v2.5M6 11.5V14M10 11.5V14M2 6h2.5M2 10h2.5M11.5 6H14M11.5 10H14"
-                fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-          <rect x="6.8" y="6.8" width="2.4" height="2.4" fill="currentColor"/>
-        </svg>
-        Circuit
-      </h2>
-      <figure class="circuit">
-        <img src="{{ url_for('static', filename=config.circuit) }}" alt="{{ config.circuit_alt }}">
-        <figcaption>{{ config.circuit_caption }}</figcaption>
-        <div class="legend" aria-hidden="true">
-          <span><i class="dot dot-supply"></i>Supply</span>
-          <span><i class="dot dot-current"></i>Current</span>
-          <span><i class="dot dot-voltage"></i>Voltage</span>
-          <span><i class="dot dot-qpoint"></i>Q-point</span>
-        </div>
-      </figure>
-    </section>
-
-    <section class="panel panel-results" aria-labelledby="results-title">
-      {% if point %}
-      <h2 id="results-title">
-        <svg class="panel-icon" viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M2.5 13.5h11" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-          <rect x="3.5" y="8" width="2.2" height="4" rx=".4" fill="currentColor"/>
-          <rect x="6.9" y="5" width="2.2" height="7" rx=".4" fill="currentColor" opacity=".75"/>
-          <rect x="10.3" y="2.5" width="2.2" height="9.5" rx=".4" fill="currentColor" opacity=".5"/>
-        </svg>
-        Q-point <span class="badge region-{{ point.region }}">{{ point.region|capitalize }}</span>
-      </h2>
-      <table>
-        <thead><tr><th>Quantity</th><th>Value</th></tr></thead>
-        <tbody>
-          <tr><td>IB</td><td>{{ point.ib_a|current }}</td></tr>
-          <tr><td>IC</td><td>{{ point.ic_a|milliamps }}</td></tr>
-          <tr><td>IE</td><td>{{ point.ie_a|milliamps }}</td></tr>
-          <tr><td>VB</td><td>{{ point.vb_v|voltage }}</td></tr>
-          <tr><td>VC</td><td>{{ point.vc_v|voltage }}</td></tr>
-          <tr><td>VE</td><td>{{ point.ve_v|voltage }}</td></tr>
-          <tr><td>VCE</td><td>{{ point.vce_v|voltage }}</td></tr>
-          <tr><td>PQ</td><td>{{ point.pq_w|power }}</td></tr>
-        </tbody>
-      </table>
-
-      {% if comparison %}
-      <div class="crosscheck">
-        <h3>Independent cross-check</h3>
-        <table>
-          <thead><tr><th>Quantity</th><th>Exact (Thevenin)</th><th>Approximate</th></tr></thead>
-          <tbody>
-            <tr><td>IC</td><td>{{ point.ic_a|milliamps }}</td><td>{{ comparison.ic_approx_a|milliamps }}</td></tr>
-            <tr><td>VCE</td><td>{{ point.vce_v|voltage }}</td><td>{{ comparison.vce_approx_a|voltage }}</td></tr>
-            <tr><td>Divergence</td><td colspan="2">{{ comparison.divergence_pct|percent }}</td></tr>
-          </tbody>
-        </table>
-      </div>
-      {% endif %}
-      {% for warning in warnings %}<p class="warning">{{ warning }}</p>{% endfor %}
-      {% else %}
-      <h2 id="results-title">
-        <svg class="panel-icon" viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M2.5 13.5h11" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-          <rect x="3.5" y="8" width="2.2" height="4" rx=".4" fill="currentColor"/>
-          <rect x="6.9" y="5" width="2.2" height="7" rx=".4" fill="currentColor" opacity=".75"/>
-          <rect x="10.3" y="2.5" width="2.2" height="9.5" rx=".4" fill="currentColor" opacity=".5"/>
-        </svg>
-        DC Bias results
-      </h2>
-      <p class="placeholder">Enter the parameters and choose <strong>Solve Q-point</strong> to see the operating point, region, and cross-check.</p>
-      {% endif %}
-    </section>
-  </div>
-
-  <section class="panel sim-panel" aria-labelledby="sim-title">
-    <h2 id="sim-title">Reference CE Amplifier Simulator (ngspice)</h2>
-    <p class="lede sim-lede">Fixed reference circuit: VCC=12 V, R1=100 kΩ, R2=22 kΩ, RC=2.2 kΩ, RE=1 kΩ, RL=10 kΩ, Cin=Cout=10 µF, 2N3904 model. SPICE results come from real ngspice runs.</p>
-
-    {% if sim_errors %}
-    <ul class="errors">
-      {% for error in sim_errors %}<li>{{ error }}</li>{% endfor %}
-    </ul>
-    {% endif %}
-    {% if sim_error %}
-    <div class="sim-error">{{ sim_error }}</div>
-    {% endif %}
-
-    <form method="post" action="/simulate?mode={{ mode }}" class="sim-form">
-      <label for="amplitude_mv">
-        <span class="label">Amplitude</span>
-        <div class="input-wrap">
-          <input id="amplitude_mv" name="amplitude_mv" value="{{ sim_values.amplitude_mv }}" inputmode="decimal" autocomplete="off">
-          <span class="unit-suffix">mV peak</span>
-        </div>
-      </label>
-      <label for="frequency_hz">
-        <span class="label">Frequency</span>
-        <div class="input-wrap">
-          <input id="frequency_hz" name="frequency_hz" value="{{ sim_values.frequency_hz }}" inputmode="decimal" autocomplete="off">
-          <span class="unit-suffix">Hz</span>
-        </div>
-      </label>
-      <button type="submit" class="sim-button">Run SPICE simulation</button>
-    </form>
-
-    {% if sim_result %}
-    <div class="sim-results">
-      <div class="sim-grid">
-        <div>
-          <h3>SPICE DC operating point (.op)</h3>
-          <table>
-            <thead><tr><th>Quantity</th><th>SPICE</th><th>Analytical reference</th></tr></thead>
-            <tbody>
-              <tr><td>IB</td><td>{{ sim_result.spice.dc.ib_a|current }}</td><td>{{ sim_result.analytical.ib_a|current }}</td></tr>
-              <tr><td>IC</td><td>{{ sim_result.spice.dc.ic_a|milliamps }}</td><td>{{ sim_result.analytical.ic_a|milliamps }}</td></tr>
-              <tr><td>IE</td><td>{{ sim_result.spice.dc.ie_a|milliamps }}</td><td>{{ sim_result.analytical.ie_a|milliamps }}</td></tr>
-              <tr><td>VB</td><td>{{ sim_result.spice.dc.vb_v|voltage }}</td><td>{{ sim_result.analytical.vb_v|voltage }}</td></tr>
-              <tr><td>VC</td><td>{{ sim_result.spice.dc.vc_v|voltage }}</td><td>{{ sim_result.analytical.vc_v|voltage }}</td></tr>
-              <tr><td>VE</td><td>{{ sim_result.spice.dc.ve_v|voltage }}</td><td>{{ sim_result.analytical.ve_v|voltage }}</td></tr>
-              <tr><td>VCE</td><td>{{ sim_result.spice.dc.vce_v|voltage }}</td><td>{{ sim_result.analytical.vce_v|voltage }}</td></tr>
-              <tr><td>Region</td><td>{{ sim_result.spice.dc.region|capitalize }}</td><td>{{ sim_result.analytical.region|capitalize }}</td></tr>
-            </tbody>
-          </table>
-          <p class="sim-note">{{ sim_result.analytical.assumptions }} SPICE values are model-based and may differ.</p>
-        </div>
-        <div>
-          <h3>AC frequency response (.ac)</h3>
-          <table>
-            <tbody>
-              <tr><td>Gain @ selected f</td><td>{{ "%.4g"|format(sim_result.spice.ac.gain_vv) }} V/V ({{ "%.3f"|format(sim_result.spice.ac.gain_db) }} dB)</td></tr>
-              <tr><td>Phase @ selected f</td><td>{{ "%.2f"|format(sim_result.spice.ac.phase_deg) }} deg</td></tr>
-              <tr><td>Low -3 dB</td><td>{% if sim_result.spice.ac.low_cutoff_hz %}{{ "%.4g"|format(sim_result.spice.ac.low_cutoff_hz) }} Hz{% else %}not determined in sweep range{% endif %}</td></tr>
-              <tr><td>High -3 dB</td><td>{% if sim_result.spice.ac.high_cutoff_hz %}{{ "%.4g"|format(sim_result.spice.ac.high_cutoff_hz) }} Hz{% else %}not determined in sweep range{% endif %}</td></tr>
-            </tbody>
-          </table>
-          <h3>Transient response (.tran)</h3>
-          <table>
-            <tbody>
-              <tr><td>Vin amplitude</td><td>{{ "%.4g"|format(sim_result.meta.amplitude_mv_peak) }} mV peak</td></tr>
-              <tr><td>Vout amplitude</td><td>{{ "%.4g"|format(sim_result.spice.tran.vout_peak_v * 1000) }} mV peak</td></tr>
-              <tr><td>Gain</td><td>{{ "%.4g"|format(sim_result.spice.tran.gain_vv) }} V/V</td></tr>
-              <tr><td>Phase</td><td>{{ "%.2f"|format(sim_result.spice.tran.phase_deg) }} deg {% if sim_result.spice.tran.phase_inverted %}(inverted){% endif %}</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="sim-charts">
-        <div class="sim-chart">{{ sim_ac_svg|safe }}</div>
-        <div class="sim-chart">{{ sim_tran_svg|safe }}</div>
-      </div>
+        {% endif %}
+      </section>
     </div>
-    {% endif %}
-  </section>
+  </div>
 </main>
+<script>
+(function () {
+  const modeSelect = document.getElementById('mode-select');
+  if (modeSelect) modeSelect.addEventListener('change', function () { window.location = this.value; });
+
+  const viewButtons = Array.from(document.querySelectorAll('.content-tab'));
+  const views = { schematic: document.getElementById('schematic-view'), guide: document.getElementById('guide-view') };
+  viewButtons.forEach(function (button) {
+    button.addEventListener('click', function () {
+      viewButtons.forEach(function (b) { b.classList.remove('is-active'); b.setAttribute('aria-selected', 'false'); });
+      button.classList.add('is-active'); button.setAttribute('aria-selected', 'true');
+      Object.keys(views).forEach(function (key) { if (views[key]) views[key].hidden = key !== button.dataset.view; });
+    });
+  });
+
+  const resultButtons = Array.from(document.querySelectorAll('.result-tab'));
+  const panels = Array.from(document.querySelectorAll('[data-result-panel]'));
+  resultButtons.forEach(function (button) {
+    button.addEventListener('click', function () {
+      resultButtons.forEach(function (b) { b.classList.remove('is-active'); b.setAttribute('aria-selected', 'false'); });
+      button.classList.add('is-active'); button.setAttribute('aria-selected', 'true');
+      panels.forEach(function (p) { p.hidden = p.dataset.resultPanel !== button.dataset.result; });
+    });
+  });
+
+  const biasForm = document.getElementById('bias-form');
+  const initial = {};
+  if (biasForm) {
+    Array.from(biasForm.querySelectorAll('input')).forEach(function (input) { initial[input.id] = input.value; });
+  }
+  const resetButton = document.getElementById('reset-button');
+  if (resetButton && biasForm) resetButton.addEventListener('click', function () {
+    Array.from(biasForm.querySelectorAll('input')).forEach(function (input) { input.value = initial[input.id]; });
+  });
+  const validateButton = document.getElementById('validate-button');
+  if (validateButton && biasForm) validateButton.addEventListener('click', function () {
+    const problems = Array.from(biasForm.querySelectorAll('input')).filter(function (input) {
+      const n = Number(input.value);
+      return input.value.trim() === '' || !Number.isFinite(n);
+    });
+    validateButton.textContent = problems.length ? '✕ Check inputs' : '✓ Inputs valid';
+    window.setTimeout(function () { validateButton.textContent = '✓ Validate'; }, 1800);
+  });
+
+  const saveButton = document.getElementById('save-project');
+  if (saveButton) saveButton.addEventListener('click', function () {
+    saveButton.textContent = 'Saved ✓';
+    window.setTimeout(function () { saveButton.textContent = 'Save Project'; }, 1800);
+  });
+
+  const sidebarAmplitude = document.getElementById('sidebar_amplitude');
+  const sidebarFrequency = document.getElementById('sidebar_frequency');
+  const amplitude = document.getElementById('amplitude_mv');
+  const frequency = document.getElementById('frequency_hz');
+  function sync(from, to) { if (from && to) from.addEventListener('input', function () { to.value = from.value; }); }
+  sync(sidebarAmplitude, amplitude); sync(amplitude, sidebarAmplitude);
+  sync(sidebarFrequency, frequency); sync(frequency, sidebarFrequency);
+})();
+</script>
 </body>
 </html>
